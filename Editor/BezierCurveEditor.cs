@@ -32,6 +32,8 @@ public class BezierCurveEditor : Editor
     Vector2 selectionStartPos;
     bool regionSelect;
     List<int> selectedPoints;
+    Quaternion multieditRotation = Quaternion.identity;
+    Quaternion lastRotation = Quaternion.identity;
 
     void OnEnable()
     {
@@ -350,6 +352,37 @@ public class BezierCurveEditor : Editor
                         }
                     }
                 }
+                else if (Tools.current == Tool.Rotate)
+                {
+                    if (Event.current.button == 0 && Event.current.type == EventType.MouseUp)
+                    {
+                        multieditRotation = Quaternion.identity;
+                        lastRotation = Quaternion.identity;
+                    }
+
+                    multieditRotation = Handles.RotationHandle(multieditRotation, avgPosition);
+
+
+                    Quaternion rotDiff = multieditRotation * Quaternion.Inverse(lastRotation);
+
+                    lastRotation = multieditRotation;
+
+                    if (rotDiff != Quaternion.identity)
+                    {
+                        //Debug.Log(rotDiff);
+                        for (int sp = 0; sp < sct; sp++)
+                        {
+                            int i = selectedPoints[sp];
+
+                            Vector3 posDiff = curve[i].position - avgPosition;
+                            Vector3 newPos = rotDiff * posDiff;
+
+                            curve[i].position = avgPosition + newPos;
+                            curve[i].handle1 = rotDiff * curve[i].handle1;
+                            //curve[i].transform.rotation *= targetRot;
+                        }
+                    }
+                }
             }
 
             if (Event.current.button == 0)
@@ -367,6 +400,9 @@ public class BezierCurveEditor : Editor
                 {
                     //GUIUtility.hotControl = controlId;
                     //Event.current.Use();
+
+                    multieditRotation = Quaternion.identity;
+                    lastRotation = Quaternion.identity;
 
                     regionSelect = false;
                 }
