@@ -15,6 +15,9 @@ public class BezierCurveEditor : Editor
 
     private static bool showPointsFoldout = true;
 
+    EditorApplication.CallbackFunction delayRemoveDelegate;
+    BezierPoint pointToDestroy;
+
     void OnEnable()
     {
         curve = (BezierCurve)target;
@@ -25,6 +28,14 @@ public class BezierCurveEditor : Editor
         colorProp = serializedObject.FindProperty("drawColor");
         mirrorProp = serializedObject.FindProperty("_mirror");
         mirrorAxisProp = serializedObject.FindProperty("_axis");
+
+        delayRemoveDelegate = new EditorApplication.CallbackFunction(RemovePoint);
+    }
+
+    void RemovePoint()
+    {
+        Undo.DestroyObjectImmediate(pointToDestroy.gameObject);
+        EditorApplication.delayCall -= delayRemoveDelegate;
     }
 
     public override void OnInspectorGUI()
@@ -181,6 +192,7 @@ public class BezierCurveEditor : Editor
             pointsProp.MoveArrayElement(curve.GetPointIndex(point), curve.pointCount - 1);
             pointsProp.arraySize--;
             curve.SetDirty();
+
             return;
         }
 
@@ -197,8 +209,12 @@ public class BezierCurveEditor : Editor
             Undo.RecordObject(target, "Remove Point");
             pointsProp.MoveArrayElement(curve.GetPointIndex(point), curve.pointCount - 1);
             pointsProp.arraySize--;
+
             curve.SetDirty();
-            Undo.DestroyObjectImmediate(point.gameObject);
+
+            EditorApplication.delayCall += delayRemoveDelegate;
+            pointToDestroy = point;
+
             return;
         }
 
@@ -337,7 +353,7 @@ public class BezierCurveEditor : Editor
                 point.globalHandle1 = newGlobal1;
                 if (point.handleStyle == BezierPoint.HandleStyle.Connected) point.globalHandle2 = -(newGlobal1 - point.position) + point.position;
             }
-            
+
             Vector3 newGlobal2 = Handles.FreeMoveHandle(point.globalHandle2, point.transform.rotation, HandleUtility.GetHandleSize(point.globalHandle2) * 0.075f, Vector3.zero, Handles.CircleHandleCap);
             if (point.globalHandle2 != newGlobal2)
             {
