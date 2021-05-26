@@ -136,6 +136,16 @@ public class BezierCurveEditor : Editor
             }
 
             toolMode = (ToolMode)GUILayout.SelectionGrid((int)toolMode, toolModesText, 3);
+
+            if (toolMode != lastToolMode)
+            {
+                if (toolMode == ToolMode.Editing)
+                    Tools.hidden = true;
+                else
+                    ExitEditMode();
+            }
+
+            lastToolMode = toolMode;
         }
 
         EditorGUILayout.PropertyField(mirrorProp);
