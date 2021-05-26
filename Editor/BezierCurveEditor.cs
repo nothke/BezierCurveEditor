@@ -106,47 +106,21 @@ public class BezierCurveEditor : Editor
                 DrawPointInspector(curve[i], i);
             }
 
-            if (GUILayout.Button("Add Point"))
-            {
-                GameObject pointObject = new GameObject("Point " + pointsProp.arraySize);
-                pointObject.transform.parent = curve.transform;
-
-                Undo.RegisterCreatedObjectUndo(pointObject, "Add Point");
-
-                Vector3 direction;
-                if (pointCount >= 1)
-                {
-                    direction = (curve.GetAnchorPoints()[pointCount - 1].handle2 - curve.GetAnchorPoints()[pointCount - 1].handle1).normalized;
-                    pointObject.transform.localPosition = curve.GetAnchorPoints()[pointCount - 1].localPosition + direction * 2;
-                }
-                else
-                {
-                    direction = Vector3.forward;
-                    pointObject.transform.localPosition = Vector3.zero;
-                }
-
-                BezierPoint newPoint = pointObject.AddComponent<BezierPoint>();
-
-                newPoint._curve = curve;
-                newPoint.handle1 = -direction;
-                newPoint.handle2 = direction;
-
-                pointsProp.InsertArrayElementAtIndex(pointsProp.arraySize);
-                pointsProp.GetArrayElementAtIndex(pointsProp.arraySize - 1).objectReferenceValue = newPoint;
-            }
-
-            toolMode = (ToolMode)GUILayout.SelectionGrid((int)toolMode, toolModesText, 3);
-
-            if (toolMode != lastToolMode)
-            {
-                if (toolMode == ToolMode.Editing)
-                    Tools.hidden = true;
-                else
-                    ExitEditMode();
-            }
-
-            lastToolMode = toolMode;
+            //if (GUILayout.Button("Add Point"))
+            //    AddPoint();
         }
+
+        toolMode = (ToolMode)GUILayout.SelectionGrid((int)toolMode, toolModesText, 3);
+
+        if (toolMode != lastToolMode)
+        {
+            if (toolMode == ToolMode.Editing)
+                Tools.hidden = true;
+            else
+                ExitEditMode();
+        }
+
+        lastToolMode = toolMode;
 
         EditorGUILayout.PropertyField(mirrorProp);
 
@@ -289,7 +263,7 @@ public class BezierCurveEditor : Editor
                     GUIUtility.hotControl = controlId;
                     Event.current.Use();
 
-                    Debug.Log("Click down");
+                    //Debug.Log("Click down");
                     createDragging = true;
 
                     curve.AddPointAt(targetPoint);
@@ -300,7 +274,7 @@ public class BezierCurveEditor : Editor
                     //GUIUtility.hotControl = controlId;
                     //Event.current.Use();
 
-                    Debug.Log("Click up");
+                    //Debug.Log("Click up");
                     createDragging = false;
                 }
             }
@@ -657,6 +631,37 @@ public class BezierCurveEditor : Editor
         p4.handle1 = new Vector3(0, 0, -0.28f);
 
         curve.close = true;
+    }
+
+    void AddPoint()
+    {
+        int pointCount = curve.pointCount;
+
+        GameObject pointObject = new GameObject("Point " + pointsProp.arraySize);
+        pointObject.transform.parent = curve.transform;
+
+        Undo.RegisterCreatedObjectUndo(pointObject, "Add Point");
+
+        Vector3 direction;
+        if (pointCount >= 1)
+        {
+            direction = (curve.GetAnchorPoints()[pointCount - 1].handle2 - curve.GetAnchorPoints()[pointCount - 1].handle1).normalized;
+            pointObject.transform.localPosition = curve.GetAnchorPoints()[pointCount - 1].localPosition + direction * 2;
+        }
+        else
+        {
+            direction = Vector3.forward;
+            pointObject.transform.localPosition = Vector3.zero;
+        }
+
+        BezierPoint newPoint = pointObject.AddComponent<BezierPoint>();
+
+        newPoint._curve = curve;
+        newPoint.handle1 = -direction;
+        newPoint.handle2 = direction;
+
+        pointsProp.InsertArrayElementAtIndex(pointsProp.arraySize);
+        pointsProp.GetArrayElementAtIndex(pointsProp.arraySize - 1).objectReferenceValue = newPoint;
     }
 
     bool GetMouseSceneHit(out RaycastHit hit)
