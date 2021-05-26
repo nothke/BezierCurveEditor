@@ -1,4 +1,4 @@
-using System.Collections;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -19,14 +19,19 @@ public class BezierCurveEditor : Editor
     BezierPoint pointToDestroy;
 
     // Tool
-    enum ToolMode { None, Creating };
+    enum ToolMode { None, Creating, Editing };
     ToolMode toolMode;
     ToolMode lastToolMode = ToolMode.None;
     bool createDragging;
 
-    string[] toolModesText = { "None", "Add" };
+    static readonly string[] toolModesText = { "None", "Add", "Multiedit" };
 
     static bool blockSelection;
+
+    // Multiediting
+    Vector2 selectionStartPos;
+    bool regionSelect;
+    List<int> selectedPoints;
 
     void OnEnable()
     {
@@ -42,6 +47,27 @@ public class BezierCurveEditor : Editor
         delayRemoveDelegate = new EditorApplication.CallbackFunction(RemovePoint);
 
         createDragging = false;
+
+        selectedPoints = new List<int>();
+
+        if (toolMode == ToolMode.Editing)
+            Tools.hidden = true;
+        else
+            ExitEditMode();
+    }
+
+    private void OnDisable()
+    {
+        blockSelection = false;
+
+        ExitEditMode();
+    }
+
+    void ExitEditMode()
+    {
+        selectedPoints.Clear();
+
+        Tools.hidden = false;
     }
 
     void RemovePoint()
@@ -267,8 +293,87 @@ public class BezierCurveEditor : Editor
                 }
             }
         }
+        else if (toolMode == ToolMode.Editing)
+        {
+            int controlId = GUIUtility.GetControlID(FocusType.Passive);
 
-        blockSelection = toolMode == ToolMode.Creating;
+            if (regionSelect)
+            {
+                var mousePos = Event.current.mousePosition;
+                Rect selectionRect = new Rect(selectionStartPos, mousePos - selectionStartPos);
+
+                selectedPoints.Clear();
+                for (int i = 0; i < curve.pointCount; i++)
+                {
+                    var point = HandleUtility.WorldToGUIPoint(curve[i].position);
+                    if (selectionRect.Contains(point))
+                    {
+                        selectedPoints.Add(i);
+                    }
+                }
+
+                Handles.BeginGUI();
+                GUI.Box(selectionRect, new GUIContent());
+                Handles.EndGUI();
+
+                SceneView.RepaintAll();
+            }
+
+            Vector3 avgPosition = Vector3.zero;
+
+            int sct = selectedPoints.Count;
+            for (int sp = 0; sp < sct; sp++)
+            {
+                int i = selectedPoints[sp];
+
+                Vector3 pos = curve[i].position;
+                avgPosition += pos / sct;
+
+                float size = HandleUtility.GetHandleSize(pos) * 0.1f;
+                Handles.SphereHandleCap(-1, pos, Quaternion.identity, size, EventType.Repaint);
+            }
+
+            if (selectedPoints.Count > 0)
+            {
+                if (Tools.current == Tool.Move)
+                {
+                    Vector3 targetPos = Handles.PositionHandle(avgPosition, Quaternion.identity);
+
+                    Vector3 diff = avgPosition - targetPos;
+
+                    if (diff != Vector3.zero)
+                    {
+                        for (int sp = 0; sp < sct; sp++)
+                        {
+                            int i = selectedPoints[sp];
+                            curve[i].position -= diff;
+                        }
+                    }
+                }
+            }
+
+            if (Event.current.button == 0)
+            {
+                if (Event.current.type == EventType.MouseDown)
+                {
+                    GUIUtility.hotControl = controlId;
+                    Event.current.Use();
+
+                    selectionStartPos = Event.current.mousePosition;
+
+                    regionSelect = true;
+                }
+                else if (Event.current.type == EventType.MouseUp)
+                {
+                    //GUIUtility.hotControl = controlId;
+                    //Event.current.Use();
+
+                    regionSelect = false;
+                }
+            }
+        }
+
+        blockSelection = toolMode != ToolMode.None;
     }
 
     void DrawPointInspector(BezierPoint point, int index)
