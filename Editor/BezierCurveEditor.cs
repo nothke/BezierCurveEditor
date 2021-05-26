@@ -18,6 +18,16 @@ public class BezierCurveEditor : Editor
     EditorApplication.CallbackFunction delayRemoveDelegate;
     BezierPoint pointToDestroy;
 
+    // Tool
+    enum ToolMode { None, Creating };
+    ToolMode toolMode;
+    ToolMode lastToolMode = ToolMode.None;
+    bool createDragging;
+
+    string[] toolModesText = { "None", "Add" };
+
+    static bool blockSelection;
+
     void OnEnable()
     {
         curve = (BezierCurve)target;
@@ -30,6 +40,8 @@ public class BezierCurveEditor : Editor
         mirrorAxisProp = serializedObject.FindProperty("_axis");
 
         delayRemoveDelegate = new EditorApplication.CallbackFunction(RemovePoint);
+
+        createDragging = false;
     }
 
     void RemovePoint()
@@ -94,6 +106,8 @@ public class BezierCurveEditor : Editor
                 pointsProp.InsertArrayElementAtIndex(pointsProp.arraySize);
                 pointsProp.GetArrayElementAtIndex(pointsProp.arraySize - 1).objectReferenceValue = newPoint;
             }
+
+            toolMode = (ToolMode)GUILayout.SelectionGrid((int)toolMode, toolModesText, 3);
         }
 
         EditorGUILayout.PropertyField(mirrorProp);
@@ -182,6 +196,79 @@ public class BezierCurveEditor : Editor
         {
             DrawPointSceneGUI(curve[i], i);
         }
+
+        if (toolMode == ToolMode.Creating)
+        {
+
+            Vector3 targetPoint;
+            Vector3 targetNormal;
+            if (GetMouseSceneHit(out RaycastHit hit))
+            {
+                targetPoint = hit.point;
+                targetNormal = hit.normal;
+            }
+            else
+            {
+                Vector2 guiPosition = Event.current.mousePosition;
+                Ray ray = HandleUtility.GUIPointToWorldRay(guiPosition);
+
+                if (curve.pointCount > 0)
+                {
+                    Plane plane = new Plane(Vector3.up, curve.Last().position);
+
+                    plane.Raycast(ray, out float d);
+                    targetPoint = ray.GetPoint(d);
+                }
+                else
+                {
+                    Plane plane = new Plane(Vector3.up, curve.transform.position);
+
+                    plane.Raycast(ray, out float d);
+                    targetPoint = ray.GetPoint(d);
+                }
+
+                targetNormal = Vector3.up;
+            }
+
+            Handles.ArrowHandleCap(0,
+                targetPoint, Quaternion.LookRotation(targetNormal, Vector3.forward),
+                20, EventType.Repaint);
+
+            SceneView.RepaintAll();
+
+            if (createDragging)
+            {
+                curve[curve.pointCount - 1].globalHandle2 = targetPoint;
+            }
+
+            if (Event.current.button == 0)
+            {
+                if (Event.current.type == EventType.MouseDown)
+                {
+                    GUIUtility.hotControl = 0;
+                    int controlId = GUIUtility.GetControlID(FocusType.Passive);
+
+                    GUIUtility.hotControl = controlId;
+                    Event.current.Use();
+
+                    Debug.Log("Click down");
+                    createDragging = true;
+
+                    curve.AddPointAt(targetPoint);
+                }
+                else if (Event.current.type == EventType.MouseUp)
+                {
+                    //int controlId = GUIUtility.GetControlID(FocusType.Passive);
+                    //GUIUtility.hotControl = controlId;
+                    //Event.current.Use();
+
+                    Debug.Log("Click up");
+                    createDragging = false;
+                }
+            }
+        }
+
+        blockSelection = toolMode == ToolMode.Creating;
     }
 
     void DrawPointInspector(BezierPoint point, int index)
@@ -330,17 +417,34 @@ public class BezierCurveEditor : Editor
         Handles.Label(point.position + new Vector3(0, HandleUtility.GetHandleSize(point.position) * 0.4f, 0), point.gameObject.name);
 
         Handles.color = Color.green;
-        int ctrlId = GUIUtility.GetControlID(FocusType.Passive);
-        Vector3 newPosition = Handles.FreeMoveHandle(ctrlId, point.position, point.transform.rotation, HandleUtility.GetHandleSize(point.position) * 0.1f, Vector3.zero, Handles.RectangleHandleCap);
 
-        if (newPosition != point.position)
+        // While using a live tool, the selection is disabled because it messes with controlId of the tool
+        // Replace with better selection system
+        if (blockSelection)
         {
-            Undo.RecordObject(point.transform, "Move Point");
-            point.position = newPosition;
+            Vector3 newPosition = Handles.FreeMoveHandle(point.position, point.transform.rotation, HandleUtility.GetHandleSize(point.position) * 0.1f, Vector3.zero, Handles.RectangleHandleCap);
+
+            if (newPosition != point.position)
+            {
+                Undo.RecordObject(point.transform, "Move Point");
+                point.position = newPosition;
+            }
         }
-        else if (GUIUtility.hotControl == ctrlId)
+        else
         {
-            point.curve.lastClickedPointIndex = index;
+            // Use control id to figure out which object is currently being controlled. Is there a better method?
+            int ctrlId = GUIUtility.GetControlID(FocusType.Passive);
+            Vector3 newPosition = Handles.FreeMoveHandle(ctrlId, point.position, point.transform.rotation, HandleUtility.GetHandleSize(point.position) * 0.1f, Vector3.zero, Handles.RectangleHandleCap);
+
+            if (newPosition != point.position)
+            {
+                Undo.RecordObject(point.transform, "Move Point");
+                point.position = newPosition;
+            }
+            else if (GUIUtility.hotControl == ctrlId)
+            {
+                point.curve.lastClickedPointIndex = index;
+            }
         }
 
         if (point.handleStyle != BezierPoint.HandleStyle.None)
@@ -402,5 +506,13 @@ public class BezierCurveEditor : Editor
         p4.handle1 = new Vector3(0, 0, -0.28f);
 
         curve.close = true;
+    }
+
+    bool GetMouseSceneHit(out RaycastHit hit)
+    {
+        Vector2 guiPosition = Event.current.mousePosition;
+        Ray ray = HandleUtility.GUIPointToWorldRay(guiPosition);
+
+        return Physics.Raycast(ray, out hit);
     }
 }
