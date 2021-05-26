@@ -189,6 +189,11 @@ public class BezierCurveEditor : Editor
         }
         EditorGUILayout.EndHorizontal();
 
+        if (GUILayout.Button("Center Pivot"))
+        {
+            CenterPivot();
+        }
+
         if (GUILayout.Button("Clean-up null points"))
         {
             curve.CleanupNullPoints();
@@ -662,6 +667,44 @@ public class BezierCurveEditor : Editor
 
         pointsProp.InsertArrayElementAtIndex(pointsProp.arraySize);
         pointsProp.GetArrayElementAtIndex(pointsProp.arraySize - 1).objectReferenceValue = newPoint;
+    }
+
+    void CenterPivot()
+    {
+        if (curve.pointCount == 0)
+            return;
+
+        //Undo.RecordObject(target, "Center Pivot");
+
+        Bounds bounds = new Bounds(curve[0].position, Vector3.zero);
+
+        for (int i = 1; i < curve.pointCount; i++)
+        {
+            bounds.Encapsulate(curve[i].position);
+        }
+
+        Vector3 targetPosition = bounds.center;
+
+        Vector3 offset = targetPosition - curve.transform.position;
+
+        SerializedObject curveTransformSO = new SerializedObject(curve.transform);
+        curveTransformSO.FindProperty("m_LocalPosition").vector3Value = targetPosition;
+        //curve.transform.position = targetPosition;
+
+        for (int i = 0; i < curve.pointCount; i++)
+        {
+            Vector3 position = curve[i].localPosition - offset;
+
+            SerializedObject pointTransformSO = new SerializedObject(curve[i].transform);
+            var posProp = pointTransformSO.FindProperty("m_LocalPosition");
+            posProp.vector3Value = position;
+
+            pointTransformSO.ApplyModifiedProperties();
+        }
+
+        curveTransformSO.ApplyModifiedProperties();
+
+        Undo.RecordObject(curve, "Center Pivot");
     }
 
     bool GetMouseSceneHit(out RaycastHit hit)
