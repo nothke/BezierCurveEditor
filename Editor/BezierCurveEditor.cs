@@ -170,8 +170,14 @@ public class BezierCurveEditor : Editor
         {
             Subdivide();
         }
-
         if (selectedPoints.Count < 2) GUI.enabled = true;
+
+        if (selectedPoints.Count < 1) GUI.enabled = false;
+        if (GUILayout.Button("Remove"))
+        {
+            RemovePoints();
+        }
+        if (selectedPoints.Count < 1) GUI.enabled = true;
 
         if (GUILayout.Button("Center Pivot"))
         {
@@ -738,6 +744,22 @@ public class BezierCurveEditor : Editor
 
         Undo.RecordObject(curve, "Center Pivot");
         curveTransformSO.ApplyModifiedProperties();
+    }
+
+    void RemovePoints()
+    {
+        selectedPoints.Sort();
+
+        for (int sp = selectedPoints.Count - 1; sp >= 0; sp--)
+        {
+            int i = selectedPoints[sp];
+            pointsProp.DeleteArrayElementAtIndex(i);
+        }
+
+        Undo.RecordObject(curve, "Remove Points");
+        serializedObject.ApplyModifiedProperties();
+
+        selectedPoints.Clear();
     }
 
     void AlignPoints()
