@@ -4,6 +4,10 @@ This repo is a fork of [BezierCurveEditor by Arkham Interactive from Unity Asset
 
 It differs from the version on the Asset Store - the first commit is the code by the original author, the rest are customizations made in the last couple of years we've been using the code. Those are mostly additions to existing functionality.
 
+### no-point-gameobjects branch
+
+The branch removes GameObjects for each bezier point and instead stores points as managed objects in the BezierCurve, thus removing the overhead of GameObjects and Components. Beware, it is WIP and there is currently no upgrade method from old GameObject-based BezierPoints to non-GameObject, upgrading will remove all current points.
+
 ### BezierArcApproximation
 
 This script is a new addition, it wasn't present in the version from the Asset Store. It can be used to approximate the Bezier curve using circular arcs (to the given error threshold). It was ported from the [javascript library by Pomax](http://pomax.github.io/bezierinfo).
