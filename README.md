@@ -41,3 +41,23 @@ This change makes sure that all segments have approximately the same resolution 
 Previously, a curve whose segments are very different in length (e.g. a curve made of 3 points, where one segment is short and one very long) would have all segments interpolated with the same number of points, causing short segments to be interpolated too densely, and long segments to be insufficiently precise, with visible poly-line shape.
 
 Automatic curve resolution recalculation will be done when Unity encounters old curves (on scene open, prefab instantiation, play, etc.), which will update the resolution value by dividing the old resolution by the length of the shortest curve segment. This will cause the longer segments have more interpolated points than before, but will prevent loss of precision on the shortest segment.
+
+### GameObjectless Curve Points
+
+The original package had GameObjects for each curve point as "BezierPoint" components. The no-point-gameobjects branch removes both components and GameObjects and uses an array of serialized pure C# "CurvePoint" classes instead. Simplifying code and optimizing the scene as a result.
+
+The points now have just a position and handles and no longer have full transforms, so they don't have separate rotation and scale, as they just add unnecessary complexity.
+
+#### How to upgrade
+
+There is an automatic upgrade system that takes the old BezierPoints and converts them to CurvePoints, but needs to be used carefully:
+* Before moving to a no-point-gameobjects branch, open an empty scene with no BezierCurves visible
+* Checkout the no-point-gameobjects branch and let it recompile
+* Now open each of the scenes that contains BezierCurves. The upgrade will run automatically and output a message if the upgrade went successfully. Save each of the scenes.
+* For BezierCurves that are part of prefabs, you will need to manually remove old children GameObjects in those prefabs and reapply the prefabs.
+
+#### API Changes
+
+Most of the functions are still exactly the same, here are the differences:
+* The point class name has changed from BezierPoint to CurvePoint (BezierPoint still exists for upgrade purposes);
+* BezierPoints do not have Transforms any more, so in case you were using them, you will have to bypass those. The points only store position relative to the BezierCurve now (and handle positions). Rotation and scale no longer exists.
