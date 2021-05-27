@@ -28,7 +28,10 @@ public class BezierCurveEditor : Editor
     // Multiediting
     Vector2 selectionStartPos;
     bool regionSelect;
+    
     List<int> selectedPoints;
+    int lastSelectedPointsCt;
+
     Quaternion multieditRotation = Quaternion.identity;
     Quaternion lastRotation = Quaternion.identity;
     Vector3 multieditScale = Vector3.one;
@@ -65,6 +68,7 @@ public class BezierCurveEditor : Editor
     void ExitEditMode()
     {
         selectedPoints.Clear();
+        lastSelectedPointsCt = 0;
 
         Tools.hidden = false;
     }
@@ -311,6 +315,13 @@ public class BezierCurveEditor : Editor
                 float size = HandleUtility.GetHandleSize(pos) * 0.1f;
                 Handles.SphereHandleCap(-1, pos, Quaternion.identity, size, EventType.Repaint);
             }
+
+            if (sct != lastSelectedPointsCt)
+            {
+                Repaint();
+            }
+
+            lastSelectedPointsCt = sct;
 
             if (selectedPoints.Count > 0)
             {
@@ -707,22 +718,19 @@ public class BezierCurveEditor : Editor
 
         SerializedObject curveTransformSO = new SerializedObject(curve.transform);
         curveTransformSO.FindProperty("m_LocalPosition").vector3Value = targetPosition;
-        //curve.transform.position = targetPosition;
 
         for (int i = 0; i < curve.pointCount; i++)
         {
             Vector3 position = curve[i].localPosition - offset;
 
-            //SerializedObject pointTransformSO = new SerializedObject(curve[i].transform);
-            //var posProp = pointTransformSO.FindProperty("m_LocalPosition");
-            //posProp.vector3Value = position;
+            var pointProp = pointsProp.GetArrayElementAtIndex(i);
+            var posProp = pointProp.FindPropertyRelative("_position");
 
-            //pointTransformSO.ApplyModifiedProperties();
+            posProp.vector3Value = position;
         }
 
-        curveTransformSO.ApplyModifiedProperties();
-
         Undo.RecordObject(curve, "Center Pivot");
+        curveTransformSO.ApplyModifiedProperties();
     }
 
     void AlignPoints()
