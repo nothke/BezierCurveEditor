@@ -165,6 +165,14 @@ public class BezierCurveEditor : Editor
         }
         EditorGUILayout.EndHorizontal();
 
+        if (selectedPoints.Count < 2) GUI.enabled = false;
+        if (GUILayout.Button("Align"))
+        {
+            RegisterPointsAndTransforms("Align Points");
+            AlignPoints();
+        }
+        if (selectedPoints.Count < 2) GUI.enabled = true;
+
         if (GUILayout.Button("Center Pivot"))
         {
             CenterPivot();
@@ -693,6 +701,44 @@ public class BezierCurveEditor : Editor
         curveTransformSO.ApplyModifiedProperties();
 
         Undo.RecordObject(curve, "Center Pivot");
+    }
+
+    void AlignPoints()
+    {
+        selectedPoints.Sort();
+
+        Vector3 median = Vector3.zero;
+        List<BezierPoint> points = new List<BezierPoint>(curve.pointCount);
+        for (int sp = 0; sp < selectedPoints.Count; sp++)
+        {
+            int i = selectedPoints[sp];
+            points.Add(curve[i]);
+
+            Vector3 pos = curve[i].position;
+
+            median += pos / selectedPoints.Count;
+        }
+
+        Vector3 normal = Vector3.Normalize(points[points.Count - 1].position - points[0].position);
+        median = (points[0].position + points[points.Count - 1].position) / 2;
+
+        for (int i = 0; i < points.Count; i++)
+        {
+            Quaternion rot = Quaternion.FromToRotation(points[i].handle2.normalized, normal);
+            points[i].handle2 = rot * points[i].handle2;
+        }
+
+        if (points.Count > 2)
+        {
+            for (int i = 1; i < points.Count - 1; i++)
+            {
+                points[i].position = Vector3.Project(points[i].position - median, normal) + median;
+            }
+        }
+
+        Debug.DrawRay(points[0].position, normal * 100, Color.yellow, 1);
+
+        Debug.DrawRay(median, Vector3.forward * 100, Color.red, 1);
     }
 
     bool GetMouseSceneHit(out RaycastHit hit)
