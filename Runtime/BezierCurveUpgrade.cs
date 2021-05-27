@@ -31,6 +31,8 @@ public static class BezierCurveUpgrade
 
         if (curve.version < 3)
         {
+            Debug.Log("Upgrading to version 3");
+
             if (curve.legacyPoints != null && curve.legacyPoints.Length > 0)
             {
                 for (int i = 0; i < curve.legacyPoints.Length; i++)
