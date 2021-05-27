@@ -55,7 +55,15 @@ public static class BezierCurveUpgrade
                     cp.handle2 = bp.handle2;
                 }
 
-                Debug.Log($"Upgraded {curve.name} with {curve.legacyPoints.Length} points to GameObjectless points");
+                for (int i = curve.legacyPoints.Length - 1; i >= 0; i--)
+                {
+                    UnityEditor.Undo.DestroyObjectImmediate(curve.legacyPoints[i].gameObject);
+                    //Object.DestroyImmediate(curve.gameObject);
+                }
+
+                curve.legacyPoints = null;
+
+                Debug.Log($"Upgraded {curve.name} to v3 and converted {curve.legacyPoints.Length} points to GameObjectless points");
             }
             else
                 Debug.LogWarning($"Upgraded {curve.name}, but no BezierPoints found");
