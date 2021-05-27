@@ -6,7 +6,7 @@ It differs from the version on the Asset Store - the first commit is the code by
 
 ### no-point-gameobjects branch
 
-The branch removes GameObjects for each bezier point and instead stores points as managed objects in the BezierCurve, thus removing the overhead of GameObjects and Components. Beware, it is WIP and there is currently no upgrade method from old GameObject-based BezierPoints to non-GameObject, upgrading will remove all current points.
+The branch removes GameObjects for each bezier point and instead stores points as managed objects in the BezierCurve, thus removing the overhead of GameObjects and Components. See [Breaking Changes below](#GameObjectless-Curve-Points).
 
 ### BezierArcApproximation
 
@@ -16,6 +16,29 @@ This script is a new addition, it wasn't present in the version from the Asset S
 
 File hierarchy has been reorganized for importing via Unity Package Manager.
 
+### Live editing tools
+
+The update adds a few new tools:
+
+#### Add
+
+When active, you can click and drag the mouse in the scene to add points. It places points at raycast hit into the scene. If there is no hit, it places them at the same depth as the last point.
+
+#### Multiedit
+
+You can multi-select points, move, rotate or scale them (by changing to the respective tool). Multiedit mode is also basis for the following tools:
+
+#### Align
+
+Aligns selected points along a line, taking the first and last points as beginning and end of the line.
+
+#### Subdivide
+
+Inserts a new point on a segment between 2 sequentially selected points.
+
+#### Remove
+
+Removes selected points.
 
 # Optimization
 
@@ -54,10 +77,10 @@ There is an automatic upgrade system that takes the old BezierPoints and convert
 * Before moving to a no-point-gameobjects branch, open an empty scene with no BezierCurves visible
 * Checkout the no-point-gameobjects branch and let it recompile
 * Now open each of the scenes that contains BezierCurves. The upgrade will run automatically and output a message if the upgrade went successfully. Save each of the scenes.
-* For BezierCurves that are part of prefabs, you will need to manually remove old children GameObjects in those prefabs and reapply the prefabs.
+* For BezierCurves that are part of prefabs, you will need to manually remove old child GameObjects and reapply the prefabs.
 
 #### API Changes
 
-Most of the functions are still exactly the same, here are the differences:
+Most of the functions are still the same, but there's a few differences:
 * The point class name has changed from BezierPoint to CurvePoint (BezierPoint still exists for upgrade purposes);
 * BezierPoints do not have Transforms any more, so in case you were using them, you will have to bypass those. The points only store position relative to the BezierCurve now (and handle positions). Rotation and scale no longer exists.
