@@ -701,9 +701,7 @@ public class BezierCurveEditor : Editor
             pointObject.transform.localPosition = Vector3.zero;
         }
 
-        CurvePoint newPoint = new CurvePoint(); //pointObject.AddComponent<CurvePoint>();
-
-        newPoint._curve = curve;
+        CurvePoint newPoint = new CurvePoint(curve);
         newPoint.handle1 = -direction;
         newPoint.handle2 = direction;
 
@@ -823,9 +821,8 @@ public class BezierCurveEditor : Editor
             out Vector3 rightStartPosition, out Vector3 rightEndPosition,
             out Vector3 rightStartTangent, out Vector3 rightEndTangent);
 
-        CurvePoint newPoint = new CurvePoint()
+        CurvePoint newPoint = new CurvePoint(curve)
         {
-            _curve = curve,
             handleStyle = CurvePoint.HandleStyle.Connected,
 
             position = leftEndPosition,

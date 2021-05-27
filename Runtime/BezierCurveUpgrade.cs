@@ -43,14 +43,12 @@ public static class BezierCurveUpgrade
 
                 for (int i = 0; i < curve.legacyPoints.Length; i++)
                 {
-                    curve.AddPoint(new CurvePoint()
-                    {
-                        curve = curve,
+                    CurvePoint cp = new CurvePoint(curve);
+                    cp.position = curve.legacyPoints[i].position;
+                    cp.globalHandle1 = curve.legacyPoints[i].globalHandle1;
+                    cp.globalHandle2 = curve.legacyPoints[i].globalHandle2;
 
-                        position = curve.legacyPoints[i].localPosition,
-                        globalHandle1 = curve.legacyPoints[i].globalHandle1,
-                        globalHandle2 = curve.legacyPoints[i].globalHandle2
-                    });
+                    //curve.AddPoint(cp);
                 }
 
                 Debug.Log($"Upgraded {curve.name} with {curve.legacyPoints.Length} points to GameObjectless points");

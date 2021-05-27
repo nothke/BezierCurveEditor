@@ -270,13 +270,7 @@ public class BezierCurve : MonoBehaviour
 
     public CurvePoint CreatePointAt(Vector3 position)
     {
-        //GameObject pointObject = new GameObject("Point " + pointCount);
-
-        //pointObject.transform.parent = transform;
-        //pointObject.transform.position = position;
-
-        CurvePoint newPoint = new CurvePoint();// pointObject.AddComponent<CurvePoint>();
-        newPoint._curve = this;
+        CurvePoint newPoint = new CurvePoint(this);
         newPoint.position = position;
 
         return newPoint;

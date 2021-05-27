@@ -15,6 +15,10 @@ using UnityEngine;
 [Serializable]
 public class CurvePoint
 {
+    public CurvePoint(BezierCurve curve)
+    {
+        this.curve = curve;
+    }
 
     #region PublicEnumerations
 
