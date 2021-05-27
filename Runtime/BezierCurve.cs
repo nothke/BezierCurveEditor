@@ -16,7 +16,7 @@ using UnityEngine;
 [Serializable]
 public class BezierCurve : MonoBehaviour
 {
-    // the number of interpolated points for each curve segment (pair of BezierPoints) is calculated
+    // the number of interpolated points for each curve segment (pair of CurvePoints) is calculated
     // by approximating the segment length using this crude value, just to get enough precision to
     // account for segments's shape dictated by its handles (instead of just using straight lines)
     private const int RESOLUTION_TO_NUMPOINTS_FACTOR = 3;
@@ -101,7 +101,7 @@ public class BezierCurve : MonoBehaviour
     /// <param name='index'>
     ///     - the index
     /// </param>
-    public BezierPoint this[int index]
+    public CurvePoint this[int index]
     {
         get { return points[index]; }
     }
@@ -151,11 +151,14 @@ public class BezierCurve : MonoBehaviour
 
     #region PrivateVariables
 
+    [UnityEngine.Serialization.FormerlySerializedAs("points")]
+    private BezierPoint[] legacyPoints;
+
     /// <summary>
     ///     - Array of point objects that make up this curve
     ///             - Populated through editor
     /// </summary>
-    [SerializeField] private BezierPoint[] points = new BezierPoint[0];
+    [SerializeField] private CurvePoint[] points = new CurvePoint[0];
 
     #endregion
 
@@ -249,30 +252,30 @@ public class BezierCurve : MonoBehaviour
     /// <param name='point'>
     ///     - The point to add.
     /// </param>
-    public void AddPoint(BezierPoint point)
+    public void AddPoint(CurvePoint point)
     {
-        List<BezierPoint> tempArray = new List<BezierPoint>(points);
+        List<CurvePoint> tempArray = new List<CurvePoint>(points);
         tempArray.Add(point);
         points = tempArray.ToArray();
         dirty = true;
     }
 
-    public void InsertPoint(int index, BezierPoint point)
+    public void InsertPoint(int index, CurvePoint point)
     {
-        List<BezierPoint> tempArray = new List<BezierPoint>(points);
+        List<CurvePoint> tempArray = new List<CurvePoint>(points);
         tempArray.Insert(index, point);
         points = tempArray.ToArray();
         dirty = true;
     }
 
-    public BezierPoint CreatePointAt(Vector3 position)
+    public CurvePoint CreatePointAt(Vector3 position)
     {
         //GameObject pointObject = new GameObject("Point " + pointCount);
 
         //pointObject.transform.parent = transform;
         //pointObject.transform.position = position;
 
-        BezierPoint newPoint = new BezierPoint();// pointObject.AddComponent<BezierPoint>();
+        CurvePoint newPoint = new CurvePoint();// pointObject.AddComponent<CurvePoint>();
         newPoint._curve = this;
         newPoint.position = position;
 
@@ -288,18 +291,18 @@ public class BezierCurve : MonoBehaviour
     /// <param name='position'>
     ///     - Where to add the point
     /// </param>
-    public BezierPoint AddPointAt(Vector3 position)
+    public CurvePoint AddPointAt(Vector3 position)
     {
-        BezierPoint newPoint = CreatePointAt(position);
+        CurvePoint newPoint = CreatePointAt(position);
 
         AddPoint(newPoint);
 
         return newPoint;
     }
 
-    public BezierPoint AddPointBehind(Vector3 position)
+    public CurvePoint AddPointBehind(Vector3 position)
     {
-        BezierPoint newPoint = CreatePointAt(position);
+        CurvePoint newPoint = CreatePointAt(position);
 
         //newPoint.transform.SetAsFirstSibling();
         InsertPoint(0, newPoint);
@@ -307,9 +310,9 @@ public class BezierCurve : MonoBehaviour
         return newPoint;
     }
 
-    public BezierPoint InsertPointAt(int index, Vector3 position)
+    public CurvePoint InsertPointAt(int index, Vector3 position)
     {
-        BezierPoint newPoint = CreatePointAt(position);
+        CurvePoint newPoint = CreatePointAt(position);
 
         //newPoint.transform.SetSiblingIndex(index);
         InsertPoint(index, newPoint);
@@ -324,9 +327,9 @@ public class BezierCurve : MonoBehaviour
     /// <param name='point'>
     ///     - The point to remove
     /// </param>
-    public void RemovePoint(BezierPoint point)
+    public void RemovePoint(CurvePoint point)
     {
-        List<BezierPoint> tempArray = new List<BezierPoint>(points);
+        List<CurvePoint> tempArray = new List<CurvePoint>(points);
         tempArray.Remove(point);
         points = tempArray.ToArray();
         dirty = false;
@@ -334,7 +337,7 @@ public class BezierCurve : MonoBehaviour
 
     public void RemovePoint(int index)
     {
-        List<BezierPoint> tempArray = new List<BezierPoint>(points);
+        List<CurvePoint> tempArray = new List<CurvePoint>(points);
         tempArray.RemoveAt(index);
         points = tempArray.ToArray();
         dirty = false;
@@ -345,7 +348,7 @@ public class BezierCurve : MonoBehaviour
     /// </summary>
     public void CleanupNullPoints()
     {
-        List<BezierPoint> cleanPoints = new List<BezierPoint>();
+        List<CurvePoint> cleanPoints = new List<CurvePoint>();
 
         foreach (var p in points)
         {
@@ -361,21 +364,21 @@ public class BezierCurve : MonoBehaviour
     /// <returns>
     ///     - The cloned array of points
     /// </returns>
-    public BezierPoint[] GetAnchorPoints()
+    public CurvePoint[] GetAnchorPoints()
     {
-        return (BezierPoint[])points.Clone();
+        return (CurvePoint[])points.Clone();
     }
 
 
-    public BezierPoint Last()
+    public CurvePoint Last()
     {
         return this[points.Length - 1];
     }
 
     struct TBetweenPointsData
     {
-        public BezierPoint p1;
-        public BezierPoint p2;
+        public CurvePoint p1;
+        public CurvePoint p2;
         public float t;
     }
     // Helper method for finding a pair of points and a corresponding local 't' for given global 't'
@@ -401,8 +404,8 @@ public class BezierCurve : MonoBehaviour
             float totalPercent = 0;
             float curvePercent = 0;
 
-            BezierPoint p1 = null;
-            BezierPoint p2 = null;
+            CurvePoint p1 = null;
+            CurvePoint p2 = null;
 
             int approxResolution = 10;
 
@@ -475,10 +478,10 @@ public class BezierCurve : MonoBehaviour
         return GetTangent(tbp.p1, tbp.p2, tbp.t);
     }
 
-    public Vector3 GetTangent(BezierPoint bp1, BezierPoint bp2, float t)
+    public Vector3 GetTangent(CurvePoint bp1, CurvePoint bp2, float t)
     {
-        if (bp1.handleStyle == BezierPoint.HandleStyle.None &&
-            bp2.handleStyle == BezierPoint.HandleStyle.None)
+        if (bp1.handleStyle == CurvePoint.HandleStyle.None &&
+            bp2.handleStyle == CurvePoint.HandleStyle.None)
         {
             return (bp2.position - bp1.position).normalized;
         }
@@ -491,10 +494,10 @@ public class BezierCurve : MonoBehaviour
         return Tangent(a, b, c, d, t);
     }
 
-    public Vector3 GetLocalTangent(BezierPoint bp1, BezierPoint bp2, float t)
+    public Vector3 GetLocalTangent(CurvePoint bp1, CurvePoint bp2, float t)
     {
-        if (bp1.handleStyle == BezierPoint.HandleStyle.None &&
-            bp2.handleStyle == BezierPoint.HandleStyle.None)
+        if (bp1.handleStyle == CurvePoint.HandleStyle.None &&
+            bp2.handleStyle == CurvePoint.HandleStyle.None)
         {
             return (bp2.localPosition - bp1.localPosition).normalized;
         }
@@ -526,7 +529,7 @@ public class BezierCurve : MonoBehaviour
     /// <param name='point'>
     ///     - Point to search for
     /// </param>
-    public int GetPointIndex(BezierPoint point)
+    public int GetPointIndex(CurvePoint point)
     {
         int result = -1;
         for (int i = 0; i < points.Length; i++)
@@ -591,7 +594,7 @@ public class BezierCurve : MonoBehaviour
     /// <param name='resolution'>
     ///     - The number of segments along the curve to draw
     /// </param>
-    public static void DrawCurve(BezierPoint p1, BezierPoint p2, int resolution)
+    public static void DrawCurve(CurvePoint p1, CurvePoint p2, int resolution)
     {
         var interpolated = Interpolate(p1.position, p1.globalHandle2, p2.position, p2.globalHandle1, resolution);
 
@@ -608,7 +611,7 @@ public class BezierCurve : MonoBehaviour
         }
     }
 
-    public static void DrawCurve(BezierPoint p1, BezierPoint p2, float resolution)
+    public static void DrawCurve(CurvePoint p1, CurvePoint p2, float resolution)
     {
         DrawCurve(p1, p2, GetNumPoints(p1, p2, resolution));
     }
@@ -628,7 +631,7 @@ public class BezierCurve : MonoBehaviour
     }
 
 
-    public static void DrawCurveMirrored(Transform localTransform, BezierPoint p1, BezierPoint p2, int resolution, Axis axis)
+    public static void DrawCurveMirrored(Transform localTransform, CurvePoint p1, CurvePoint p2, int resolution, Axis axis)
     {
         int limit = resolution + 1;
         float _res = resolution;
@@ -655,7 +658,7 @@ public class BezierCurve : MonoBehaviour
         }
     }
 
-    public static void DrawCurveMirrored(Transform localTransform, BezierPoint p1, BezierPoint p2, float resolution, Axis axis)
+    public static void DrawCurveMirrored(Transform localTransform, CurvePoint p1, CurvePoint p2, float resolution, Axis axis)
     {
         DrawCurveMirrored(localTransform, p1, p2, GetNumPoints(p1, p2, resolution), axis);
     }
@@ -675,7 +678,7 @@ public class BezierCurve : MonoBehaviour
         return point;
     }
 
-    public static Vector3 GetPoint(BezierPoint p1, BezierPoint p2, float t)
+    public static Vector3 GetPoint(CurvePoint p1, CurvePoint p2, float t)
     {
         return GetPoint(p1.position, p1.globalHandle2, p2.position, p2.globalHandle1, t);
     }
@@ -726,7 +729,7 @@ public class BezierCurve : MonoBehaviour
         return point;
     }
 
-    public static Vector3 GetPointLocal(BezierPoint p1, BezierPoint p2, float t)
+    public static Vector3 GetPointLocal(CurvePoint p1, CurvePoint p2, float t)
     {
         //Vector3 p1H1 = p1.localPosition + p1.handle1;
         Vector3 p1H2 = p1.localPosition + p1.handle2;
@@ -844,7 +847,7 @@ public class BezierCurve : MonoBehaviour
     /// <param name='numPoints'>
     ///     - The number of points along the curve used to create measurable segments
     /// </param>
-    public static float ApproximateLength(BezierPoint p1, BezierPoint p2, int numPoints = 10)
+    public static float ApproximateLength(CurvePoint p1, CurvePoint p2, int numPoints = 10)
     {
         return ApproximateLength(p1.position, p1.globalHandle2, p2.position, p2.globalHandle1, numPoints);
     }
@@ -866,7 +869,7 @@ public class BezierCurve : MonoBehaviour
         return total;
     }
 
-    public static float ApproximateLength(BezierPoint p1, BezierPoint p2, float resolution = 0.5f)
+    public static float ApproximateLength(CurvePoint p1, CurvePoint p2, float resolution = 0.5f)
     {
         int numPoints = GetNumPoints(p1, p2, resolution);
         return ApproximateLength(p1, p2, numPoints);
@@ -881,7 +884,7 @@ public class BezierCurve : MonoBehaviour
     /// <summary>
     /// Returns the number of points required to interpolate the given bezier points to a given resolution.
     /// </summary>
-    public static int GetNumPoints(BezierPoint p1, BezierPoint p2, float resolution)
+    public static int GetNumPoints(CurvePoint p1, CurvePoint p2, float resolution)
     {
         return GetNumPoints(p1.position, p1.globalHandle2, p2.position, p2.globalHandle1, resolution);
     }
@@ -937,8 +940,8 @@ public class BezierCurve : MonoBehaviour
         float totalLength = 0;
         float curveLength = 0;
 
-        BezierPoint firstPoint = null;
-        BezierPoint secondPoint = null;
+        CurvePoint firstPoint = null;
+        CurvePoint secondPoint = null;
 
         for(int i = 0; i < points.Length - 1; i++)
         {

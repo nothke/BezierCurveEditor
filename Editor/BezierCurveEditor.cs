@@ -447,7 +447,7 @@ public class BezierCurveEditor : Editor
         blockSelection = toolMode != ToolMode.None;
     }
 
-    void DrawPointInspector(BezierPoint point, int index)
+    void DrawPointInspector(CurvePoint point, int index)
     {
         if (point == null)
         {
@@ -494,7 +494,7 @@ public class BezierCurveEditor : Editor
         EditorGUI.indentLevel++;
         EditorGUI.indentLevel++;
 
-        int newType = (int)((object)EditorGUILayout.EnumPopup("Handle Type", (BezierPoint.HandleStyle)handleStyleProp.enumValueIndex));
+        int newType = (int)((object)EditorGUILayout.EnumPopup("Handle Type", (CurvePoint.HandleStyle)handleStyleProp.enumValueIndex));
 
         if (newType != handleStyleProp.enumValueIndex)
         {
@@ -577,7 +577,7 @@ public class BezierCurveEditor : Editor
         return;
     }
 
-    static void DrawPointSceneGUI(BezierPoint point, int index)
+    static void DrawPointSceneGUI(CurvePoint point, int index)
     {
         /*
         if (point == null)
@@ -619,7 +619,7 @@ public class BezierCurveEditor : Editor
             }
         }
 
-        if (point.handleStyle != BezierPoint.HandleStyle.None)
+        if (point.handleStyle != CurvePoint.HandleStyle.None)
         {
             Handles.color = Color.cyan;
             Vector3 newGlobal1 = Handles.FreeMoveHandle(point.globalHandle1, Quaternion.identity, HandleUtility.GetHandleSize(point.globalHandle1) * 0.075f, Vector3.zero, Handles.CircleHandleCap);
@@ -627,7 +627,7 @@ public class BezierCurveEditor : Editor
             {
                 Undo.RecordObject(point.curve, "Move Handle");
                 point.globalHandle1 = newGlobal1;
-                if (point.handleStyle == BezierPoint.HandleStyle.Connected) point.globalHandle2 = -(newGlobal1 - point.position) + point.position;
+                if (point.handleStyle == CurvePoint.HandleStyle.Connected) point.globalHandle2 = -(newGlobal1 - point.position) + point.position;
             }
 
             Vector3 newGlobal2 = Handles.FreeMoveHandle(point.globalHandle2, Quaternion.identity, HandleUtility.GetHandleSize(point.globalHandle2) * 0.075f, Vector3.zero, Handles.CircleHandleCap);
@@ -635,7 +635,7 @@ public class BezierCurveEditor : Editor
             {
                 Undo.RecordObject(point.curve, "Move Handle");
                 point.globalHandle2 = newGlobal2;
-                if (point.handleStyle == BezierPoint.HandleStyle.Connected) point.globalHandle1 = -(newGlobal2 - point.position) + point.position;
+                if (point.handleStyle == CurvePoint.HandleStyle.Connected) point.globalHandle1 = -(newGlobal2 - point.position) + point.position;
             }
 
             Handles.color = Color.yellow;
@@ -644,11 +644,11 @@ public class BezierCurveEditor : Editor
         }
     }
 
-    public static void DrawOtherPoints(BezierCurve curve, BezierPoint caller)
+    public static void DrawOtherPoints(BezierCurve curve, CurvePoint caller)
     {
         if (!curve) return;
 
-        foreach (BezierPoint p in curve.GetAnchorPoints())
+        foreach (CurvePoint p in curve.GetAnchorPoints())
         {
             if (p != caller) DrawPointSceneGUI(p, 0);
         }
@@ -661,20 +661,20 @@ public class BezierCurveEditor : Editor
         Undo.RecordObject(curveObject, "Undo Create Curve");
         BezierCurve curve = curveObject.AddComponent<BezierCurve>();
 
-        BezierPoint p1 = curve.AddPointAt(Vector3.forward * 0.5f);
-        p1.handleStyle = BezierPoint.HandleStyle.Connected;
+        CurvePoint p1 = curve.AddPointAt(Vector3.forward * 0.5f);
+        p1.handleStyle = CurvePoint.HandleStyle.Connected;
         p1.handle1 = new Vector3(-0.28f, 0, 0);
 
-        BezierPoint p2 = curve.AddPointAt(Vector3.right * 0.5f);
-        p2.handleStyle = BezierPoint.HandleStyle.Connected;
+        CurvePoint p2 = curve.AddPointAt(Vector3.right * 0.5f);
+        p2.handleStyle = CurvePoint.HandleStyle.Connected;
         p2.handle1 = new Vector3(0, 0, 0.28f);
 
-        BezierPoint p3 = curve.AddPointAt(-Vector3.forward * 0.5f);
-        p3.handleStyle = BezierPoint.HandleStyle.Connected;
+        CurvePoint p3 = curve.AddPointAt(-Vector3.forward * 0.5f);
+        p3.handleStyle = CurvePoint.HandleStyle.Connected;
         p3.handle1 = new Vector3(0.28f, 0, 0);
 
-        BezierPoint p4 = curve.AddPointAt(-Vector3.right * 0.5f);
-        p4.handleStyle = BezierPoint.HandleStyle.Connected;
+        CurvePoint p4 = curve.AddPointAt(-Vector3.right * 0.5f);
+        p4.handleStyle = CurvePoint.HandleStyle.Connected;
         p4.handle1 = new Vector3(0, 0, -0.28f);
 
         curve.close = true;
@@ -701,7 +701,7 @@ public class BezierCurveEditor : Editor
             pointObject.transform.localPosition = Vector3.zero;
         }
 
-        BezierPoint newPoint = new BezierPoint(); //pointObject.AddComponent<BezierPoint>();
+        CurvePoint newPoint = new CurvePoint(); //pointObject.AddComponent<CurvePoint>();
 
         newPoint._curve = curve;
         newPoint.handle1 = -direction;
@@ -767,7 +767,7 @@ public class BezierCurveEditor : Editor
         selectedPoints.Sort();
 
         Vector3 median = Vector3.zero;
-        List<BezierPoint> points = new List<BezierPoint>(curve.pointCount);
+        List<CurvePoint> points = new List<CurvePoint>(curve.pointCount);
         for (int sp = 0; sp < selectedPoints.Count; sp++)
         {
             int i = selectedPoints[sp];
@@ -812,8 +812,8 @@ public class BezierCurveEditor : Editor
 
         Undo.RecordObject(curve, "Subdivide");
 
-        BezierPoint point1 = curve[selectedPoints[0]];
-        BezierPoint point2 = curve[selectedPoints[1]];
+        CurvePoint point1 = curve[selectedPoints[0]];
+        CurvePoint point2 = curve[selectedPoints[1]];
 
         BezierUtility.SplitBezier(0.5f,
             point1.position, point2.position,
@@ -823,10 +823,10 @@ public class BezierCurveEditor : Editor
             out Vector3 rightStartPosition, out Vector3 rightEndPosition,
             out Vector3 rightStartTangent, out Vector3 rightEndTangent);
 
-        BezierPoint newPoint = new BezierPoint()
+        CurvePoint newPoint = new CurvePoint()
         {
             _curve = curve,
-            handleStyle = BezierPoint.HandleStyle.Connected,
+            handleStyle = CurvePoint.HandleStyle.Connected,
 
             position = leftEndPosition,
             globalHandle1 = leftEndTangent,

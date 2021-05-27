@@ -13,7 +13,7 @@ using UnityEngine;
 ///     - Calls SetDirty() on curve when edited
 /// </summary>
 [Serializable]
-public class BezierPoint
+public class CurvePoint
 {
 
     #region PublicEnumerations
@@ -46,13 +46,12 @@ public class BezierPoint
         get { return _curve; }
         set
         {
-            /*
             if (value != _curve)
             {
                 if (_curve) _curve.RemovePoint(this);
                 _curve = value;
                 if (_curve) _curve.AddPoint(this);
-            }*/
+            }
         }
     }
 
