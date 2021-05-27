@@ -44,7 +44,7 @@ public static class BezierCurveUpgrade
                 for (int i = 0; i < curve.legacyPoints.Length; i++)
                 {
                     CurvePoint cp = new CurvePoint(curve);
-                    cp.position = curve.legacyPoints[i].position;
+                    cp.position = curve.legacyPoints[i].transform.position;
                     cp.globalHandle1 = curve.legacyPoints[i].globalHandle1;
                     cp.globalHandle2 = curve.legacyPoints[i].globalHandle2;
 
