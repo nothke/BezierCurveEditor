@@ -45,12 +45,14 @@ public static class BezierCurveUpgrade
                 {
                     BezierPoint bp = curve.legacyPoints[i];
 
+#if UNITY_EDITOR
+                    UnityEditor.Undo.RecordObject(curve, "Upgrading to version 3");
+#endif
+
                     CurvePoint cp = new CurvePoint(curve);
                     cp.position = bp.transform.position;
                     cp.handle1 = bp.handle1;
                     cp.handle2 = bp.handle2;
-
-                    //curve.AddPoint(cp);
                 }
 
                 Debug.Log($"Upgraded {curve.name} with {curve.legacyPoints.Length} points to GameObjectless points");
