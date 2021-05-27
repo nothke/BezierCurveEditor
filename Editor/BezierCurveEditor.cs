@@ -15,9 +15,6 @@ public class BezierCurveEditor : Editor
 
     private static bool showPointsFoldout = true;
 
-    EditorApplication.CallbackFunction delayRemoveDelegate;
-    BezierPoint pointToDestroy;
-
     // Tool
     enum ToolMode { None, Creating, Editing };
     ToolMode toolMode;
@@ -46,8 +43,6 @@ public class BezierCurveEditor : Editor
         mirrorProp = serializedObject.FindProperty("_mirror");
         mirrorAxisProp = serializedObject.FindProperty("_axis");
 
-        delayRemoveDelegate = new EditorApplication.CallbackFunction(RemovePoint);
-
         createDragging = false;
 
         selectedPoints = new List<int>();
@@ -72,13 +67,6 @@ public class BezierCurveEditor : Editor
         Tools.hidden = false;
     }
 
-    void RemovePoint()
-    {
-        // TODO: Redo Undo
-        //Undo.DestroyObjectImmediate(pointToDestroy.gameObject);
-        //EditorApplication.delayCall -= delayRemoveDelegate;
-    }
-
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
@@ -94,9 +82,7 @@ public class BezierCurveEditor : Editor
 
         if (showPointsFoldout)
         {
-            int pointCount = pointsProp.arraySize;
-
-            for (int i = 0; i < pointCount; i++)
+            for (int i = 0; i < curve.pointCount; i++)
             {
                 if (curve[i] == null)
                 {
@@ -405,16 +391,14 @@ public class BezierCurveEditor : Editor
     {
         if (point == null)
         {
-            Undo.RecordObject(target, "Remove Point");
-            pointsProp.MoveArrayElement(curve.GetPointIndex(point), curve.pointCount - 1);
-            pointsProp.arraySize--;
-            curve.SetDirty();
-
+            RemovePoint(index);
             return;
         }
 
-        // TODO: 
         SerializedProperty pointsArray = serializedObject.FindProperty("points");
+
+        if (index >= pointsArray.arraySize)
+            return;
 
         SerializedProperty serObj = pointsArray.GetArrayElementAtIndex(index);
 
@@ -426,15 +410,7 @@ public class BezierCurveEditor : Editor
 
         if (GUILayout.Button("X", GUILayout.Width(20)))
         {
-            Undo.RecordObject(target, "Remove Point");
-            pointsProp.MoveArrayElement(curve.GetPointIndex(point), curve.pointCount - 1);
-            pointsProp.arraySize--;
-
-            curve.SetDirty();
-
-            EditorApplication.delayCall += delayRemoveDelegate;
-            pointToDestroy = point;
-
+            RemovePoint(index);
             return;
         }
 
@@ -544,6 +520,18 @@ public class BezierCurveEditor : Editor
             serializedObject.ApplyModifiedProperties();
             // TODO: //EditorUtility.SetDirty(serObj.targetObject);
         }
+    }
+
+    void RemovePoint(int index)
+    {
+        pointsProp.MoveArrayElement(index, curve.pointCount - 1);
+        pointsProp.arraySize--;
+
+        curve.SetDirty();
+
+        Undo.RecordObject(target, "Remove Point");
+
+        return;
     }
 
     static void DrawPointSceneGUI(BezierPoint point, int index)
