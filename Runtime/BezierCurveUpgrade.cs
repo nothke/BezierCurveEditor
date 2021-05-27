@@ -37,6 +37,8 @@ public static class BezierCurveUpgrade
                 {
                     curve.AddPoint(new CurvePoint()
                     {
+                        curve = curve,
+
                         position = curve.legacyPoints[i].localPosition,
                         globalHandle1 = curve.legacyPoints[i].globalHandle1,
                         globalHandle2 = curve.legacyPoints[i].globalHandle2
