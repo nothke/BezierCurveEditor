@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEditor;
 using UnityEngine;
 
+#if false
 [CustomEditor(typeof(BezierPoint))]
 [CanEditMultipleObjects]
 public class BezierPointEditor : Editor
@@ -101,7 +102,7 @@ public class BezierPointEditor : Editor
     {
 
         Handles.color = Color.green;
-        Vector3 newPosition = Handles.FreeMoveHandle(point.position, point.transform.rotation, HandleUtility.GetHandleSize(point.position) * 0.2f, Vector3.zero, Handles.CubeHandleCap);
+        Vector3 newPosition = Handles.FreeMoveHandle(point.position, Quaternion.identity, HandleUtility.GetHandleSize(point.position) * 0.2f, Vector3.zero, Handles.CubeHandleCap);
         if (point.position != newPosition) point.position = newPosition;
 
         handlers[(int)point.handleStyle](point);
@@ -117,7 +118,7 @@ public class BezierPointEditor : Editor
     {
         Handles.color = Color.cyan;
 
-        Vector3 newGlobal1 = Handles.FreeMoveHandle(p.globalHandle1, p.transform.rotation, HandleUtility.GetHandleSize(p.globalHandle1) * 0.15f, Vector3.zero, Handles.SphereHandleCap);
+        Vector3 newGlobal1 = Handles.FreeMoveHandle(p.globalHandle1, Quaternion.identity, HandleUtility.GetHandleSize(p.globalHandle1) * 0.15f, Vector3.zero, Handles.SphereHandleCap);
 
         if (newGlobal1 != p.globalHandle1)
         {
@@ -126,7 +127,7 @@ public class BezierPointEditor : Editor
             p.globalHandle2 = -(newGlobal1 - p.position) + p.position;
         }
 
-        Vector3 newGlobal2 = Handles.FreeMoveHandle(p.globalHandle2, p.transform.rotation, HandleUtility.GetHandleSize(p.globalHandle2) * 0.15f, Vector3.zero, Handles.SphereHandleCap);
+        Vector3 newGlobal2 = Handles.FreeMoveHandle(p.globalHandle2, Quaternion.identity, HandleUtility.GetHandleSize(p.globalHandle2) * 0.15f, Vector3.zero, Handles.SphereHandleCap);
 
         if (newGlobal2 != p.globalHandle2)
         {
@@ -162,3 +163,4 @@ public class BezierPointEditor : Editor
         p.handle2 = Vector3.zero;
     }
 }
+#endif

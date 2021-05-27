@@ -267,13 +267,14 @@ public class BezierCurve : MonoBehaviour
 
     public BezierPoint CreatePointAt(Vector3 position)
     {
-        GameObject pointObject = new GameObject("Point " + pointCount);
+        //GameObject pointObject = new GameObject("Point " + pointCount);
 
-        pointObject.transform.parent = transform;
-        pointObject.transform.position = position;
+        //pointObject.transform.parent = transform;
+        //pointObject.transform.position = position;
 
-        BezierPoint newPoint = pointObject.AddComponent<BezierPoint>();
+        BezierPoint newPoint = new BezierPoint();// pointObject.AddComponent<BezierPoint>();
         newPoint._curve = this;
+        newPoint.position = position;
 
         return newPoint;
     }
@@ -300,7 +301,7 @@ public class BezierCurve : MonoBehaviour
     {
         BezierPoint newPoint = CreatePointAt(position);
 
-        newPoint.transform.SetAsFirstSibling();
+        //newPoint.transform.SetAsFirstSibling();
         InsertPoint(0, newPoint);
 
         return newPoint;
@@ -310,7 +311,7 @@ public class BezierCurve : MonoBehaviour
     {
         BezierPoint newPoint = CreatePointAt(position);
 
-        newPoint.transform.SetSiblingIndex(index);
+        //newPoint.transform.SetSiblingIndex(index);
         InsertPoint(index, newPoint);
 
         return newPoint;

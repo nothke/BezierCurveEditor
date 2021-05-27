@@ -13,7 +13,7 @@ using UnityEngine;
 ///     - Calls SetDirty() on curve when edited
 /// </summary>
 [Serializable]
-public class BezierPoint : MonoBehaviour
+public class BezierPoint
 {
 
     #region PublicEnumerations
@@ -66,12 +66,14 @@ public class BezierPoint : MonoBehaviour
     /// <value>
     ///     - The point's world position
     /// </value>
+    [SerializeField]
+    Vector3 _position;
     public Vector3 position
     {
-        get { return transform.position; }
+        get { return curve.transform.TransformPoint(_position); }
         set
         {
-            transform.position = value;
+            _position = _curve.transform.InverseTransformPoint(value);
             _curve.SetDirty();
         }
     }
@@ -84,10 +86,10 @@ public class BezierPoint : MonoBehaviour
     /// </value>
     public Vector3 localPosition
     {
-        get { return transform.localPosition; }
+        get { return _position; }
         set
         {
-            transform.localPosition = value;
+            _position = value;
             _curve.SetDirty();
         }
     }
@@ -120,8 +122,8 @@ public class BezierPoint : MonoBehaviour
     /// </summary>
     public Vector3 globalHandle1
     {
-        get { return transform.TransformPoint(handle1); }
-        set { handle1 = transform.InverseTransformPoint(value); }
+        get { return _curve.transform.TransformPoint(_position + handle1); }
+        set { handle1 = _curve.transform.InverseTransformPoint(value) - _position; }
     }
 
     /// <summary>
@@ -152,8 +154,8 @@ public class BezierPoint : MonoBehaviour
     /// </summary>
     public Vector3 globalHandle2
     {
-        get { return transform.TransformPoint(handle2); }
-        set { handle2 = transform.InverseTransformPoint(value); }
+        get { return _curve.transform.TransformPoint(_position + handle2); }
+        set { handle2 = _curve.transform.InverseTransformPoint(value) - _position; }
     }
 
     #endregion
@@ -169,6 +171,7 @@ public class BezierPoint : MonoBehaviour
 
     #region MonoBehaviourFunctions
 
+    /*
 #if !BEZIER_POINT_NO_UPDATE
     void Update()
     {
@@ -179,6 +182,7 @@ public class BezierPoint : MonoBehaviour
         }
     }
 #endif
+    */
 
     #endregion
 }

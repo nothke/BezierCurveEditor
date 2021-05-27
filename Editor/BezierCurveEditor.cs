@@ -74,8 +74,9 @@ public class BezierCurveEditor : Editor
 
     void RemovePoint()
     {
-        Undo.DestroyObjectImmediate(pointToDestroy.gameObject);
-        EditorApplication.delayCall -= delayRemoveDelegate;
+        // TODO: Redo Undo
+        //Undo.DestroyObjectImmediate(pointToDestroy.gameObject);
+        //EditorApplication.delayCall -= delayRemoveDelegate;
     }
 
     public override void OnInspectorGUI()
@@ -193,14 +194,17 @@ public class BezierCurveEditor : Editor
 
     void RegisterPointsAndTransforms(string message)
     {
-        Object[] bpObjects = new Object[curve.pointCount * 2];
+        Undo.RecordObject(curve, message);
+
+        /*
+        Object[] bpObjects = new Object[curve.pointCount];
         for (int i = 0; i < curve.pointCount; i++)
         {
-            bpObjects[i * 2] = curve[i];
-            bpObjects[i * 2 + 1] = curve[i].transform;
+            bpObjects[i] = curve[i];
         }
 
         Undo.RecordObjects(bpObjects, message);
+        */
     }
 
     void OnSceneGUI()
@@ -409,11 +413,14 @@ public class BezierCurveEditor : Editor
             return;
         }
 
-        SerializedObject serObj = new SerializedObject(point);
+        // TODO: 
+        SerializedProperty pointsArray = serializedObject.FindProperty("points");
 
-        SerializedProperty handleStyleProp = serObj.FindProperty("handleStyle");
-        SerializedProperty handle1Prop = serObj.FindProperty("_handle1");
-        SerializedProperty handle2Prop = serObj.FindProperty("_handle2");
+        SerializedProperty serObj = pointsArray.GetArrayElementAtIndex(index);
+
+        SerializedProperty handleStyleProp = serObj.FindPropertyRelative("handleStyle");
+        SerializedProperty handle1Prop = serObj.FindPropertyRelative("_handle1");
+        SerializedProperty handle2Prop = serObj.FindPropertyRelative("_handle2");
 
         EditorGUILayout.BeginHorizontal();
 
@@ -431,22 +438,29 @@ public class BezierCurveEditor : Editor
             return;
         }
 
-        EditorGUILayout.ObjectField(point.gameObject, typeof(GameObject), true);
+        GUILayout.Label("Point " + index);
+        //EditorGUILayout.ObjectField(point.gameObject, typeof(GameObject), true);
 
         if (index != 0 && GUILayout.Button(@"/\", GUILayout.Width(25)))
         {
+            // TODO: 
+            /*
             UnityEngine.Object other = pointsProp.GetArrayElementAtIndex(index - 1).objectReferenceValue;
             pointsProp.GetArrayElementAtIndex(index - 1).objectReferenceValue = point;
             pointsProp.GetArrayElementAtIndex(index).objectReferenceValue = other;
             curve.SetDirty();
+            */
         }
 
         if (index != pointsProp.arraySize - 1 && GUILayout.Button(@"\/", GUILayout.Width(25)))
         {
+            // TODO: 
+            /*
             UnityEngine.Object other = pointsProp.GetArrayElementAtIndex(index + 1).objectReferenceValue;
             pointsProp.GetArrayElementAtIndex(index + 1).objectReferenceValue = point;
             pointsProp.GetArrayElementAtIndex(index).objectReferenceValue = other;
             curve.SetDirty();
+            */
         }
 
         EditorGUILayout.EndHorizontal();
@@ -491,7 +505,7 @@ public class BezierCurveEditor : Editor
         Vector3 newPointPos = EditorGUILayout.Vector3Field("Position : ", point.localPosition);
         if (newPointPos != point.localPosition)
         {
-            Undo.RecordObject(point.transform, "Move Bezier Point");
+            // TODO: Undo.RecordObject(point, "Move Bezier Point");
             point.localPosition = newPointPos;
         }
 
@@ -527,20 +541,21 @@ public class BezierCurveEditor : Editor
 
         if (GUI.changed)
         {
-            serObj.ApplyModifiedProperties();
-            EditorUtility.SetDirty(serObj.targetObject);
+            serializedObject.ApplyModifiedProperties();
+            // TODO: //EditorUtility.SetDirty(serObj.targetObject);
         }
     }
 
     static void DrawPointSceneGUI(BezierPoint point, int index)
     {
+        /*
         if (point == null)
         {
-            Debug.LogWarning("Point is missing, please clean up manually");
+            Debug.LogWarning("Point " + index + " is missing, please clean up manually");
             return;
-        }
+        }*/
 
-        Handles.Label(point.position + new Vector3(0, HandleUtility.GetHandleSize(point.position) * 0.4f, 0), point.gameObject.name);
+        Handles.Label(point.position + new Vector3(0, HandleUtility.GetHandleSize(point.position) * 0.4f, 0), index.ToString());
 
         Handles.color = Color.green;
 
@@ -548,11 +563,11 @@ public class BezierCurveEditor : Editor
         // Replace with better selection system
         if (blockSelection)
         {
-            Vector3 newPosition = Handles.FreeMoveHandle(point.position, point.transform.rotation, HandleUtility.GetHandleSize(point.position) * 0.1f, Vector3.zero, Handles.RectangleHandleCap);
+            Vector3 newPosition = Handles.FreeMoveHandle(point.position, Quaternion.identity, HandleUtility.GetHandleSize(point.position) * 0.1f, Vector3.zero, Handles.RectangleHandleCap);
 
             if (newPosition != point.position)
             {
-                Undo.RecordObject(point.transform, "Move Point");
+                // TODO: Undo.RecordObject(point, "Move Point");
                 point.position = newPosition;
             }
         }
@@ -560,11 +575,11 @@ public class BezierCurveEditor : Editor
         {
             // Use control id to figure out which object is currently being controlled. Is there a better method?
             int ctrlId = GUIUtility.GetControlID(FocusType.Passive);
-            Vector3 newPosition = Handles.FreeMoveHandle(ctrlId, point.position, point.transform.rotation, HandleUtility.GetHandleSize(point.position) * 0.1f, Vector3.zero, Handles.RectangleHandleCap);
+            Vector3 newPosition = Handles.FreeMoveHandle(ctrlId, point.position, Quaternion.identity, HandleUtility.GetHandleSize(point.position) * 0.1f, Vector3.zero, Handles.RectangleHandleCap);
 
             if (newPosition != point.position)
             {
-                Undo.RecordObject(point.transform, "Move Point");
+                // TODO: Undo.RecordObject(point, "Move Point");
                 point.position = newPosition;
             }
             else if (GUIUtility.hotControl == ctrlId)
@@ -576,18 +591,18 @@ public class BezierCurveEditor : Editor
         if (point.handleStyle != BezierPoint.HandleStyle.None)
         {
             Handles.color = Color.cyan;
-            Vector3 newGlobal1 = Handles.FreeMoveHandle(point.globalHandle1, point.transform.rotation, HandleUtility.GetHandleSize(point.globalHandle1) * 0.075f, Vector3.zero, Handles.CircleHandleCap);
+            Vector3 newGlobal1 = Handles.FreeMoveHandle(point.globalHandle1, Quaternion.identity, HandleUtility.GetHandleSize(point.globalHandle1) * 0.075f, Vector3.zero, Handles.CircleHandleCap);
             if (point.globalHandle1 != newGlobal1)
             {
-                Undo.RecordObject(point, "Move Handle");
+                // TODO: Undo.RecordObject(point, "Move Handle");
                 point.globalHandle1 = newGlobal1;
                 if (point.handleStyle == BezierPoint.HandleStyle.Connected) point.globalHandle2 = -(newGlobal1 - point.position) + point.position;
             }
 
-            Vector3 newGlobal2 = Handles.FreeMoveHandle(point.globalHandle2, point.transform.rotation, HandleUtility.GetHandleSize(point.globalHandle2) * 0.075f, Vector3.zero, Handles.CircleHandleCap);
+            Vector3 newGlobal2 = Handles.FreeMoveHandle(point.globalHandle2, Quaternion.identity, HandleUtility.GetHandleSize(point.globalHandle2) * 0.075f, Vector3.zero, Handles.CircleHandleCap);
             if (point.globalHandle2 != newGlobal2)
             {
-                Undo.RecordObject(point, "Move Handle");
+                // TODO: Undo.RecordObject(point, "Move Handle");
                 point.globalHandle2 = newGlobal2;
                 if (point.handleStyle == BezierPoint.HandleStyle.Connected) point.globalHandle1 = -(newGlobal2 - point.position) + point.position;
             }
@@ -655,14 +670,14 @@ public class BezierCurveEditor : Editor
             pointObject.transform.localPosition = Vector3.zero;
         }
 
-        BezierPoint newPoint = pointObject.AddComponent<BezierPoint>();
+        BezierPoint newPoint = new BezierPoint(); //pointObject.AddComponent<BezierPoint>();
 
         newPoint._curve = curve;
         newPoint.handle1 = -direction;
         newPoint.handle2 = direction;
 
         pointsProp.InsertArrayElementAtIndex(pointsProp.arraySize);
-        pointsProp.GetArrayElementAtIndex(pointsProp.arraySize - 1).objectReferenceValue = newPoint;
+        pointsProp.GetArrayElementAtIndex(pointsProp.arraySize - 1).managedReferenceValue = newPoint;
     }
 
     void CenterPivot()
@@ -670,7 +685,7 @@ public class BezierCurveEditor : Editor
         if (curve.pointCount == 0)
             return;
 
-        //Undo.RecordObject(target, "Center Pivot");
+        Undo.RecordObject(target, "Center Pivot");
 
         Bounds bounds = new Bounds(curve[0].position, Vector3.zero);
 
@@ -691,11 +706,11 @@ public class BezierCurveEditor : Editor
         {
             Vector3 position = curve[i].localPosition - offset;
 
-            SerializedObject pointTransformSO = new SerializedObject(curve[i].transform);
-            var posProp = pointTransformSO.FindProperty("m_LocalPosition");
-            posProp.vector3Value = position;
+            //SerializedObject pointTransformSO = new SerializedObject(curve[i].transform);
+            //var posProp = pointTransformSO.FindProperty("m_LocalPosition");
+            //posProp.vector3Value = position;
 
-            pointTransformSO.ApplyModifiedProperties();
+            //pointTransformSO.ApplyModifiedProperties();
         }
 
         curveTransformSO.ApplyModifiedProperties();
