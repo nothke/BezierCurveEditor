@@ -502,7 +502,6 @@ public class BezierCurveEditor : Editor
         if (GUI.changed)
         {
             serializedObject.ApplyModifiedProperties();
-            // TODO: //EditorUtility.SetDirty(serObj.targetObject);
         }
     }
 
@@ -539,7 +538,7 @@ public class BezierCurveEditor : Editor
 
             if (newPosition != point.position)
             {
-                // TODO: Undo.RecordObject(point, "Move Point");
+                Undo.RecordObject(point.curve, "Move Point");
                 point.position = newPosition;
             }
         }
@@ -551,7 +550,7 @@ public class BezierCurveEditor : Editor
 
             if (newPosition != point.position)
             {
-                // TODO: Undo.RecordObject(point, "Move Point");
+                Undo.RecordObject(point.curve, "Move Point");
                 point.position = newPosition;
             }
             else if (GUIUtility.hotControl == ctrlId)
@@ -566,7 +565,7 @@ public class BezierCurveEditor : Editor
             Vector3 newGlobal1 = Handles.FreeMoveHandle(point.globalHandle1, Quaternion.identity, HandleUtility.GetHandleSize(point.globalHandle1) * 0.075f, Vector3.zero, Handles.CircleHandleCap);
             if (point.globalHandle1 != newGlobal1)
             {
-                // TODO: Undo.RecordObject(point, "Move Handle");
+                Undo.RecordObject(point.curve, "Move Handle");
                 point.globalHandle1 = newGlobal1;
                 if (point.handleStyle == BezierPoint.HandleStyle.Connected) point.globalHandle2 = -(newGlobal1 - point.position) + point.position;
             }
@@ -574,7 +573,7 @@ public class BezierCurveEditor : Editor
             Vector3 newGlobal2 = Handles.FreeMoveHandle(point.globalHandle2, Quaternion.identity, HandleUtility.GetHandleSize(point.globalHandle2) * 0.075f, Vector3.zero, Handles.CircleHandleCap);
             if (point.globalHandle2 != newGlobal2)
             {
-                // TODO: Undo.RecordObject(point, "Move Handle");
+                Undo.RecordObject(point.curve, "Move Handle");
                 point.globalHandle2 = newGlobal2;
                 if (point.handleStyle == BezierPoint.HandleStyle.Connected) point.globalHandle1 = -(newGlobal2 - point.position) + point.position;
             }
