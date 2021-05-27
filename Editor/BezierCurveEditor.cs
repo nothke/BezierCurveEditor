@@ -435,17 +435,13 @@ public class BezierCurveEditor : Editor
 
         if (index != 0 && GUILayout.Button(@"/\", GUILayout.Width(25)))
         {
-            UnityEngine.Object other = pointsProp.GetArrayElementAtIndex(index - 1).objectReferenceValue;
-            pointsProp.GetArrayElementAtIndex(index - 1).objectReferenceValue = point;
-            pointsProp.GetArrayElementAtIndex(index).objectReferenceValue = other;
+            pointsProp.MoveArrayElement(index, index - 1);
             curve.SetDirty();
         }
 
         if (index != pointsProp.arraySize - 1 && GUILayout.Button(@"\/", GUILayout.Width(25)))
         {
-            UnityEngine.Object other = pointsProp.GetArrayElementAtIndex(index + 1).objectReferenceValue;
-            pointsProp.GetArrayElementAtIndex(index + 1).objectReferenceValue = point;
-            pointsProp.GetArrayElementAtIndex(index).objectReferenceValue = other;
+            pointsProp.MoveArrayElement(index, index + 1);
             curve.SetDirty();
         }
 
