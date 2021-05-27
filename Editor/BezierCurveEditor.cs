@@ -31,6 +31,8 @@ public class BezierCurveEditor : Editor
     List<int> selectedPoints;
     Quaternion multieditRotation = Quaternion.identity;
     Quaternion lastRotation = Quaternion.identity;
+    Vector3 multieditScale = Vector3.one;
+    Vector3 lastScale = Vector3.one;
 
     void OnEnable()
     {
@@ -355,6 +357,40 @@ public class BezierCurveEditor : Editor
 
                             curve[i].position = avgPosition + newPos;
                             curve[i].handle1 = rotDiff * curve[i].handle1;
+                        }
+                    }
+                }
+                else if (Tools.current == Tool.Scale)
+                {
+                    if (Event.current.button == 0 && Event.current.type == EventType.MouseUp)
+                    {
+                        multieditScale = Vector3.one;
+                    }
+                    else
+                    {
+                        multieditScale = Handles.ScaleHandle(multieditScale, avgPosition, Quaternion.identity, HandleUtility.GetHandleSize(avgPosition));
+
+                        Vector3 scaleDiff = multieditScale - lastScale;
+                        lastScale = multieditScale;
+
+                        Vector3 scaleMult = Vector3.one + scaleDiff;
+
+                        if (scaleDiff != Vector3.zero && multieditScale != Vector3.one)
+                        {
+                            Undo.RecordObject(curve, "Scale Points");
+                            Debug.Log(multieditScale);
+
+                            for (int sp = 0; sp < sct; sp++)
+                            {
+                                int i = selectedPoints[sp];
+
+                                Vector3 posDiff = curve[i].position - avgPosition;
+                                Vector3 newPos = Vector3.Scale(posDiff, scaleMult);
+                                curve[i].position = avgPosition + newPos;
+
+                                curve[i].globalHandle1 = avgPosition + Vector3.Scale(curve[i].globalHandle1 - avgPosition, scaleMult);
+                                curve[i].globalHandle2 = avgPosition + Vector3.Scale(curve[i].globalHandle2 - avgPosition, scaleMult);
+                            }
                         }
                     }
                 }
