@@ -35,6 +35,12 @@ public static class BezierCurveUpgrade
 
             if (curve.legacyPoints != null && curve.legacyPoints.Length > 0)
             {
+                if (curve.pointCount > 0)
+                    for (int i = curve.pointCount - 1; i >= 0; i--)
+                    {
+                        curve.RemovePoint(i);
+                    }
+
                 for (int i = 0; i < curve.legacyPoints.Length; i++)
                 {
                     curve.AddPoint(new CurvePoint()
