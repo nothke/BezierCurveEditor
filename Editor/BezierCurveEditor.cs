@@ -320,6 +320,7 @@ public class BezierCurveEditor : Editor
 
                     if (diff != Vector3.zero)
                     {
+                        Undo.RecordObject(curve, "Move Points");
                         for (int sp = 0; sp < sct; sp++)
                         {
                             int i = selectedPoints[sp];
@@ -344,7 +345,7 @@ public class BezierCurveEditor : Editor
 
                     if (rotDiff != Quaternion.identity)
                     {
-                        //Debug.Log(rotDiff);
+                        Undo.RecordObject(curve, "Rotate Points");
                         for (int sp = 0; sp < sct; sp++)
                         {
                             int i = selectedPoints[sp];
@@ -354,7 +355,6 @@ public class BezierCurveEditor : Editor
 
                             curve[i].position = avgPosition + newPos;
                             curve[i].handle1 = rotDiff * curve[i].handle1;
-                            //curve[i].transform.rotation *= targetRot;
                         }
                     }
                 }
