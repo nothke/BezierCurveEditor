@@ -28,5 +28,27 @@ public static class BezierCurveUpgrade
 
             curve.version = 2;
         }
+
+        if (curve.version < 3)
+        {
+            if (curve.legacyPoints != null && curve.legacyPoints.Length > 0)
+            {
+                for (int i = 0; i < curve.legacyPoints.Length; i++)
+                {
+                    curve.AddPoint(new CurvePoint()
+                    {
+                        position = curve.legacyPoints[i].localPosition,
+                        globalHandle1 = curve.legacyPoints[i].globalHandle1,
+                        globalHandle2 = curve.legacyPoints[i].globalHandle2
+                    });
+                }
+
+                Debug.Log($"Upgraded {curve.name} with {curve.legacyPoints.Length} points to GameObjectless points");
+            }
+            else
+                Debug.LogWarning($"Upgraded {curve.name}, but no BezierPoints found");
+
+            curve.version = 3;
+        }
     }
 }

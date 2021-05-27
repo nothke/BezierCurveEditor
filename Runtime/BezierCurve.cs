@@ -152,7 +152,7 @@ public class BezierCurve : MonoBehaviour
     #region PrivateVariables
 
     [UnityEngine.Serialization.FormerlySerializedAs("points")]
-    private BezierPoint[] legacyPoints;
+    public BezierPoint[] legacyPoints;
 
     /// <summary>
     ///     - Array of point objects that make up this curve
