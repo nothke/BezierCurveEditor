@@ -132,29 +132,17 @@ public class BezierCurveEditor : Editor
         EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("Snap to X"))
         {
-            Transform[] bpObjects = new Transform[curve.pointCount];
-            for (int i = 0; i < bpObjects.Length; i++)
-                bpObjects[i] = curve[i].transform;
-
-            Undo.RecordObjects(bpObjects, "Snap to Axis");
+            RegisterPointsAndTransforms("Snap to X");
             curve.SnapAllNodesToAxis(BezierCurve.Axis.X);
         }
         if (GUILayout.Button("Snap to Y"))
         {
-            Transform[] bpObjects = new Transform[curve.pointCount];
-            for (int i = 0; i < bpObjects.Length; i++)
-                bpObjects[i] = curve[i].transform;
-
-            Undo.RecordObjects(bpObjects, "Snap to Axis");
+            RegisterPointsAndTransforms("Snap to Y");
             curve.SnapAllNodesToAxis(BezierCurve.Axis.Y);
         }
         if (GUILayout.Button("Snap to Z"))
         {
-            Transform[] bpObjects = new Transform[curve.pointCount];
-            for (int i = 0; i < bpObjects.Length; i++)
-                bpObjects[i] = curve[i].transform;
-
-            Undo.RecordObjects(bpObjects, "Snap to Axis");
+            RegisterPointsAndTransforms("Snap to Z");
             curve.SnapAllNodesToAxis(BezierCurve.Axis.Z);
         }
         EditorGUILayout.EndHorizontal();
@@ -162,29 +150,17 @@ public class BezierCurveEditor : Editor
         EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("Mirror X"))
         {
-            Transform[] bpObjects = new Transform[curve.pointCount];
-            for (int i = 0; i < bpObjects.Length; i++)
-                bpObjects[i] = curve[i].transform;
-
-            Undo.RecordObjects(bpObjects, "Mirror Around Axis");
+            RegisterPointsAndTransforms("Mirror Around X");
             curve.MirrorAllNodesAroundAxis(BezierCurve.Axis.X);
         }
         if (GUILayout.Button("Mirror Y"))
         {
-            Transform[] bpObjects = new Transform[curve.pointCount];
-            for (int i = 0; i < bpObjects.Length; i++)
-                bpObjects[i] = curve[i].transform;
-
-            Undo.RecordObjects(bpObjects, "Mirror Around Axis");
+            RegisterPointsAndTransforms("Mirror Around Y");
             curve.MirrorAllNodesAroundAxis(BezierCurve.Axis.Y);
         }
         if (GUILayout.Button("Mirror Z"))
         {
-            Transform[] bpObjects = new Transform[curve.pointCount];
-            for (int i = 0; i < bpObjects.Length; i++)
-                bpObjects[i] = curve[i].transform;
-
-            Undo.RecordObjects(bpObjects, "Mirror Around Axis");
+            RegisterPointsAndTransforms("Mirror Around Z");
             curve.MirrorAllNodesAroundAxis(BezierCurve.Axis.Z);
         }
         EditorGUILayout.EndHorizontal();
@@ -205,6 +181,18 @@ public class BezierCurveEditor : Editor
             curve.SetDirty();
             EditorUtility.SetDirty(target);
         }
+    }
+
+    void RegisterPointsAndTransforms(string message)
+    {
+        Object[] bpObjects = new Object[curve.pointCount * 2];
+        for (int i = 0; i < curve.pointCount; i++)
+        {
+            bpObjects[i * 2] = curve[i];
+            bpObjects[i * 2 + 1] = curve[i].transform;
+        }
+
+        Undo.RecordObjects(bpObjects, message);
     }
 
     void OnSceneGUI()
