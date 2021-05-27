@@ -13,7 +13,7 @@ using UnityEngine;
 ///     - Calls SetDirty() on curve when edited
 /// </summary>
 [Serializable]
-public class BezierPoint
+public class BezierPoint : MonoBehaviour
 {
 
     #region PublicEnumerations
