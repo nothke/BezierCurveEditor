@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
+using Nothke.Utils;
+
 [CustomEditor(typeof(BezierCurve))]
 public class BezierCurveEditor : Editor
 {
@@ -28,7 +30,7 @@ public class BezierCurveEditor : Editor
     // Multiediting
     Vector2 selectionStartPos;
     bool regionSelect;
-    
+
     List<int> selectedPoints;
     int lastSelectedPointsCt;
 
@@ -164,6 +166,11 @@ public class BezierCurveEditor : Editor
             RegisterPointsAndTransforms("Align Points");
             AlignPoints();
         }
+        if (GUILayout.Button("Subdivide"))
+        {
+            Subdivide();
+        }
+
         if (selectedPoints.Count < 2) GUI.enabled = true;
 
         if (GUILayout.Button("Center Pivot"))
@@ -769,6 +776,52 @@ public class BezierCurveEditor : Editor
         Debug.DrawRay(points[0].position, normal * 100, Color.yellow, 1);
 
         Debug.DrawRay(median, Vector3.forward * 100, Color.red, 1);
+    }
+
+    void Subdivide()
+    {
+        selectedPoints.Sort();
+
+        if (selectedPoints[0] != selectedPoints[1] - 1)
+        {
+            Debug.LogWarning("Cannot subdivide non sequential points");
+            return;
+        }
+
+        Undo.RecordObject(curve, "Subdivide");
+
+        BezierPoint point1 = curve[selectedPoints[0]];
+        BezierPoint point2 = curve[selectedPoints[1]];
+
+        BezierUtility.SplitBezier(0.5f,
+            point1.position, point2.position,
+            point1.globalHandle2, point2.globalHandle1,
+            out Vector3 leftStartPosition, out Vector3 leftEndPosition,
+            out Vector3 leftStartTangent, out Vector3 leftEndTangent,
+            out Vector3 rightStartPosition, out Vector3 rightEndPosition,
+            out Vector3 rightStartTangent, out Vector3 rightEndTangent);
+
+        BezierPoint newPoint = new BezierPoint()
+        {
+            _curve = curve,
+            handleStyle = BezierPoint.HandleStyle.Connected,
+
+            position = leftEndPosition,
+            globalHandle1 = leftEndTangent,
+            globalHandle2 = rightStartTangent
+        };
+
+        int index = selectedPoints[0] + 1;
+        pointsProp.InsertArrayElementAtIndex(index);
+        curve[index].position = leftEndPosition;
+        curve[index].globalHandle1 = leftEndTangent;
+        curve[index].globalHandle2 = rightStartTangent;
+
+        var prop = pointsProp.GetArrayElementAtIndex(index);
+        prop.FindPropertyRelative("_position").vector3Value = curve[index].localPosition;
+        prop.FindPropertyRelative("_handle1").vector3Value = curve[index].handle1;
+        prop.FindPropertyRelative("_handle2").vector3Value = curve[index].handle2;
+        serializedObject.ApplyModifiedProperties();
     }
 
     bool GetMouseSceneHit(out RaycastHit hit)
