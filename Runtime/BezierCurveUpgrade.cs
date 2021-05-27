@@ -61,12 +61,13 @@ public static class BezierCurveUpgrade
                     //Object.DestroyImmediate(curve.gameObject);
                 }
 
+                int ct = curve.legacyPoints.Length;
                 curve.legacyPoints = null;
 
-                Debug.Log($"Upgraded {curve.name} to v3 and converted {curve.legacyPoints.Length} points to GameObjectless points");
+                Debug.Log($"Upgraded curve \"{curve.name}\" to v3 and converted {ct} points to GameObjectless points", curve);
             }
             else
-                Debug.LogWarning($"Upgraded {curve.name}, but no BezierPoints found");
+                Debug.LogWarning($"Upgraded \"{curve.name}\", but no BezierPoints found", curve);
 
             curve.version = 3;
         }
