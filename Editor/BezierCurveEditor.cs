@@ -415,6 +415,9 @@ public class BezierCurveEditor : Editor
         SerializedProperty handle1Prop = serObj.FindProperty("_handle1");
         SerializedProperty handle2Prop = serObj.FindProperty("_handle2");
 
+        SerializedObject tSerObj = new SerializedObject(point.transform);
+        SerializedProperty positionProp = tSerObj.FindProperty("m_LocalPosition");
+
         EditorGUILayout.BeginHorizontal();
 
         if (GUILayout.Button("X", GUILayout.Width(20)))
@@ -484,31 +487,23 @@ public class BezierCurveEditor : Editor
             curve.SetDirty();
         }
 
-        Vector3 newPointPos = EditorGUILayout.Vector3Field("Position : ", point.localPosition);
-        if (newPointPos != point.localPosition)
-        {
-            Undo.RecordObject(point.transform, "Move Bezier Point");
-            point.localPosition = newPointPos;
-        }
+        EditorGUILayout.PropertyField(positionProp);
 
         if (handleStyleProp.enumValueIndex == 0)
         {
-            Vector3 newPosition;
-
-            newPosition = EditorGUILayout.Vector3Field("Handle 1", handle1Prop.vector3Value);
-            if (newPosition != handle1Prop.vector3Value)
+            // Makes sure that handles are reflected when manipulated in inspector
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(handle1Prop);
+            if (EditorGUI.EndChangeCheck())
             {
-                handle1Prop.vector3Value = newPosition;
-                handle2Prop.vector3Value = -newPosition;
-                curve.SetDirty();
+                handle2Prop.vector3Value = -handle1Prop.vector3Value;
             }
 
-            newPosition = EditorGUILayout.Vector3Field("Handle 2", handle2Prop.vector3Value);
-            if (newPosition != handle2Prop.vector3Value)
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(handle2Prop);
+            if (EditorGUI.EndChangeCheck())
             {
-                handle1Prop.vector3Value = -newPosition;
-                handle2Prop.vector3Value = newPosition;
-                curve.SetDirty();
+                handle1Prop.vector3Value = -handle2Prop.vector3Value;
             }
         }
 
