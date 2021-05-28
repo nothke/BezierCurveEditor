@@ -15,7 +15,7 @@ public class BezierCurveEditor : Editor
     SerializedProperty mirrorProp;
     SerializedProperty mirrorAxisProp;
 
-    private static bool showPointsFoldout = true;
+    private static bool showPointsFoldout = false;
 
     // Tool
     enum ToolMode { None, Creating, Editing };
@@ -189,10 +189,12 @@ public class BezierCurveEditor : Editor
             CenterPivot();
         }
 
+        /*
         if (GUILayout.Button("Clean-up null points"))
         {
             curve.CleanupNullPoints();
         }
+        */
 
         if (GUI.changed)
         {
@@ -733,9 +735,9 @@ public class BezierCurveEditor : Editor
         Undo.RecordObject(curve, "Remove Points");
         serializedObject.ApplyModifiedProperties();
 
-        RegisterPointsChanged();
-
         selectedPoints.Clear();
+
+        RegisterPointsChanged();
     }
 
     void AlignPoints()
