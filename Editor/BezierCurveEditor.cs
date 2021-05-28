@@ -200,16 +200,6 @@ public class BezierCurveEditor : Editor
     void RegisterPointsAndTransforms(string message)
     {
         Undo.RecordObject(curve, message);
-
-        /*
-        Object[] bpObjects = new Object[curve.pointCount];
-        for (int i = 0; i < curve.pointCount; i++)
-        {
-            bpObjects[i] = curve[i];
-        }
-
-        Undo.RecordObjects(bpObjects, message);
-        */
     }
 
     void OnSceneGUI()
@@ -273,18 +263,12 @@ public class BezierCurveEditor : Editor
                     GUIUtility.hotControl = controlId;
                     Event.current.Use();
 
-                    //Debug.Log("Click down");
                     createDragging = true;
 
                     curve.AddPointAt(targetPoint);
                 }
                 else if (Event.current.type == EventType.MouseUp)
                 {
-                    //int controlId = GUIUtility.GetControlID(FocusType.Passive);
-                    //GUIUtility.hotControl = controlId;
-                    //Event.current.Use();
-
-                    //Debug.Log("Click up");
                     createDragging = false;
                 }
             }
@@ -402,7 +386,6 @@ public class BezierCurveEditor : Editor
                         if (scaleDiff != Vector3.zero && multieditScale != Vector3.one)
                         {
                             Undo.RecordObject(curve, "Scale Points");
-                            Debug.Log(multieditScale);
 
                             for (int sp = 0; sp < sct; sp++)
                             {
@@ -579,13 +562,6 @@ public class BezierCurveEditor : Editor
 
     static void DrawPointSceneGUI(CurvePoint point, int index)
     {
-        /*
-        if (point == null)
-        {
-            Debug.LogWarning("Point " + index + " is missing, please clean up manually");
-            return;
-        }*/
-
         Handles.Label(point.position + new Vector3(0, HandleUtility.GetHandleSize(point.position) * 0.4f, 0), index.ToString());
 
         Handles.color = Color.green;
@@ -678,35 +654,6 @@ public class BezierCurveEditor : Editor
         p4.handle1 = new Vector3(0, 0, -0.28f);
 
         curve.close = true;
-    }
-
-    void AddPoint()
-    {
-        int pointCount = curve.pointCount;
-
-        GameObject pointObject = new GameObject("Point " + pointsProp.arraySize);
-        pointObject.transform.parent = curve.transform;
-
-        Undo.RegisterCreatedObjectUndo(pointObject, "Add Point");
-
-        Vector3 direction;
-        if (pointCount >= 1)
-        {
-            direction = (curve.GetAnchorPoints()[pointCount - 1].handle2 - curve.GetAnchorPoints()[pointCount - 1].handle1).normalized;
-            pointObject.transform.localPosition = curve.GetAnchorPoints()[pointCount - 1].localPosition + direction * 2;
-        }
-        else
-        {
-            direction = Vector3.forward;
-            pointObject.transform.localPosition = Vector3.zero;
-        }
-
-        CurvePoint newPoint = new CurvePoint(curve);
-        newPoint.handle1 = -direction;
-        newPoint.handle2 = direction;
-
-        pointsProp.InsertArrayElementAtIndex(pointsProp.arraySize);
-        pointsProp.GetArrayElementAtIndex(pointsProp.arraySize - 1).managedReferenceValue = newPoint;
     }
 
     void CenterPivot()

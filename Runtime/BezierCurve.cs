@@ -915,49 +915,4 @@ public class BezierCurve : MonoBehaviour
     }
 
     #endregion
-
-    /* needs testing
-    public Vector3 GetPointAtDistance(float distance)
-    {
-        if(close)
-        {
-            if(distance < 0) while(distance < 0) { distance += length; }
-            else if(distance > length) while(distance > length) { distance -= length; }
-        }
-
-        else
-        {
-            if(distance <= 0) return points[0].position;
-            else if(distance >= length) return points[points.Length - 1].position;
-        }
-
-        float totalLength = 0;
-        float curveLength = 0;
-
-        CurvePoint firstPoint = null;
-        CurvePoint secondPoint = null;
-
-        for(int i = 0; i < points.Length - 1; i++)
-        {
-            curveLength = ApproximateLength(points[i], points[i + 1], resolution);
-            if(totalLength + curveLength >= distance)
-            {
-                firstPoint = points[i];
-                secondPoint = points[i+1];
-                break;
-            }
-            else totalLength += curveLength;
-        }
-
-        if(firstPoint == null)
-        {
-            firstPoint = points[points.Length - 1];
-            secondPoint = points[0];
-            curveLength = ApproximateLength(firstPoint, secondPoint, resolution);
-        }
-
-        distance -= totalLength;
-        return GetPoint(distance / curveLength, firstPoint, secondPoint);
-    }
-    */
 }
