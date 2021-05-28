@@ -163,6 +163,18 @@ public class BezierCurve : MonoBehaviour
 
     #endregion
 
+    #region Events
+
+    public event Action OnEndedMovingPoint;
+
+    public void InvokeEndedMovingPoint()
+    {
+        if (OnEndedMovingPoint != null)
+            OnEndedMovingPoint.Invoke();
+    }
+
+    #endregion
+
     #region UnityFunctions
 
     void OnDrawGizmos()

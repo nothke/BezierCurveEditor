@@ -122,7 +122,6 @@ public class BezierCurveEditor : Editor
         if (selectedPoints.Count < 2) GUI.enabled = false;
         if (GUILayout.Button("Align"))
         {
-            RegisterPointsAndTransforms("Align Points");
             AlignPoints();
         }
         if (GUILayout.Button("Subdivide"))
@@ -203,6 +202,11 @@ public class BezierCurveEditor : Editor
         }
     }
 
+    void RegisterPointsChanged()
+    {
+        curve.InvokeEndedMovingPoint();
+    }
+
     void RegisterPointsAndTransforms(string message)
     {
         Undo.RecordObject(curve, message);
@@ -210,6 +214,12 @@ public class BezierCurveEditor : Editor
 
     void OnSceneGUI()
     {
+        if (Event.current.type == EventType.MouseUp
+            && Event.current.button == 0)
+        {
+            curve.InvokeEndedMovingPoint();
+        }
+
         for (int i = 0; i < curve.pointCount; i++)
         {
             DrawPointSceneGUI(curve[i], i);
@@ -434,6 +444,8 @@ public class BezierCurveEditor : Editor
         }
 
         blockSelection = toolMode != ToolMode.None;
+
+
     }
 
     void DrawPointInspector(CurvePoint point, int index)
@@ -704,6 +716,8 @@ public class BezierCurveEditor : Editor
 
         Undo.RecordObject(curve, "Center Pivot");
         curveTransformSO.ApplyModifiedProperties();
+
+        RegisterPointsChanged();
     }
 
     void RemovePoints()
@@ -718,6 +732,8 @@ public class BezierCurveEditor : Editor
 
         Undo.RecordObject(curve, "Remove Points");
         serializedObject.ApplyModifiedProperties();
+
+        RegisterPointsChanged();
 
         selectedPoints.Clear();
     }
@@ -754,6 +770,9 @@ public class BezierCurveEditor : Editor
                 points[i].position = Vector3.Project(points[i].position - median, normal) + median;
             }
         }
+
+        Undo.RecordObject(curve, "Align Points");
+        RegisterPointsChanged();
 
         //Debug.DrawRay(points[0].position, normal * 100, Color.yellow, 1);
 
@@ -803,6 +822,8 @@ public class BezierCurveEditor : Editor
         prop.FindPropertyRelative("_handle1").vector3Value = curve[index].handle1;
         prop.FindPropertyRelative("_handle2").vector3Value = curve[index].handle2;
         serializedObject.ApplyModifiedProperties();
+
+        RegisterPointsChanged();
     }
 
     bool GetMouseSceneHit(out RaycastHit hit)
