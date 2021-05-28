@@ -17,7 +17,7 @@ public class CurvePoint
 {
     public CurvePoint(BezierCurve curve)
     {
-        this.curve = curve;
+        _curve = curve;
     }
 
     #region PublicEnumerations
@@ -48,15 +48,6 @@ public class CurvePoint
     public BezierCurve curve
     {
         get { return _curve; }
-        set
-        {
-            if (value != _curve)
-            {
-                if (_curve) _curve.RemovePoint(this);
-                _curve = value;
-                if (_curve) _curve.AddPoint(this);
-            }
-        }
     }
 
     /// <summary>
@@ -170,23 +161,6 @@ public class CurvePoint
     ///     - Used to determine if this point has moved since the last frame
     /// </summary>
     private Vector3 lastPosition;
-
-    #endregion
-
-    #region MonoBehaviourFunctions
-
-    /*
-#if !BEZIER_POINT_NO_UPDATE
-    void Update()
-    {
-        if (transform.position != lastPosition)
-        {
-            _curve.SetDirty();
-            lastPosition = transform.position;
-        }
-    }
-#endif
-    */
 
     #endregion
 }

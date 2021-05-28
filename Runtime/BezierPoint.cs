@@ -161,29 +161,4 @@ public class BezierPoint : MonoBehaviour
 
     #endregion
 
-    #region PrivateVariables
-
-    /// <summary>
-    ///     - Used to determine if this point has moved since the last frame
-    /// </summary>
-    private Vector3 lastPosition;
-
-    #endregion
-
-    #region MonoBehaviourFunctions
-
-    /*
-#if !BEZIER_POINT_NO_UPDATE
-    void Update()
-    {
-        if (transform.position != lastPosition)
-        {
-            _curve.SetDirty();
-            lastPosition = transform.position;
-        }
-    }
-#endif
-    */
-
-    #endregion
 }
