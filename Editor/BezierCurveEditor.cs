@@ -117,6 +117,29 @@ public class BezierCurveEditor : Editor
 
         lastToolMode = toolMode;
 
+        #region Tool operators
+
+        if (selectedPoints.Count < 2) GUI.enabled = false;
+        if (GUILayout.Button("Align"))
+        {
+            RegisterPointsAndTransforms("Align Points");
+            AlignPoints();
+        }
+        if (GUILayout.Button("Subdivide"))
+        {
+            Subdivide();
+        }
+        if (selectedPoints.Count < 2) GUI.enabled = true;
+
+        if (selectedPoints.Count < 1) GUI.enabled = false;
+        if (GUILayout.Button("Remove"))
+        {
+            RemovePoints();
+        }
+        if (selectedPoints.Count < 1) GUI.enabled = true;
+
+        #endregion
+
         EditorGUILayout.PropertyField(mirrorProp);
 
         if (curve.mirror)
@@ -160,24 +183,7 @@ public class BezierCurveEditor : Editor
         }
         EditorGUILayout.EndHorizontal();
 
-        if (selectedPoints.Count < 2) GUI.enabled = false;
-        if (GUILayout.Button("Align"))
-        {
-            RegisterPointsAndTransforms("Align Points");
-            AlignPoints();
-        }
-        if (GUILayout.Button("Subdivide"))
-        {
-            Subdivide();
-        }
-        if (selectedPoints.Count < 2) GUI.enabled = true;
 
-        if (selectedPoints.Count < 1) GUI.enabled = false;
-        if (GUILayout.Button("Remove"))
-        {
-            RemovePoints();
-        }
-        if (selectedPoints.Count < 1) GUI.enabled = true;
 
         if (GUILayout.Button("Center Pivot"))
         {

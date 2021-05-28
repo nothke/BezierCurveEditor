@@ -1,9 +1,10 @@
 #region UsingStatements
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
+using Nothke.Utils;
 
 #endregion
 
@@ -303,7 +304,6 @@ public class BezierCurve : MonoBehaviour
     {
         CurvePoint newPoint = CreatePointAt(position);
 
-        //newPoint.transform.SetAsFirstSibling();
         InsertPoint(0, newPoint);
 
         return newPoint;
@@ -313,12 +313,10 @@ public class BezierCurve : MonoBehaviour
     {
         CurvePoint newPoint = CreatePointAt(position);
 
-        //newPoint.transform.SetSiblingIndex(index);
         InsertPoint(index, newPoint);
 
         return newPoint;
     }
-
 
     /// <summary>
     ///     - Removes the given point from the curve ("points" array)
@@ -368,7 +366,6 @@ public class BezierCurve : MonoBehaviour
         return (CurvePoint[])points.Clone();
     }
 
-
     public CurvePoint Last()
     {
         return this[points.Length - 1];
@@ -380,6 +377,7 @@ public class BezierCurve : MonoBehaviour
         public CurvePoint p2;
         public float t;
     }
+
     // Helper method for finding a pair of points and a corresponding local 't' for given global 't'
     TBetweenPointsData GetTBetweenPoints(float t)
     {
@@ -541,6 +539,37 @@ public class BezierCurve : MonoBehaviour
         }
 
         return result;
+    }
+
+    public Vector3 GetClosestPoint(Vector3 toPoint)
+    {
+        if (points.Length == 0)
+            return Vector3.zero;
+
+        float closestDistance = Mathf.Infinity;
+        int ci = -1;
+        for (int i = 0; i < points.Length - 1; i++)
+        {
+            Vector3 pos = BezierUtility.ClosestPointOnCurveFast(toPoint,
+                points[i].position, points[i + 1].position,
+                points[i].globalHandle2, points[i + 1].globalHandle1,
+                out float t);
+
+            float sqrd = Vector3.SqrMagnitude(pos - toPoint);
+
+            if (sqrd < closestDistance)
+            {
+                closestDistance = sqrd;
+                ci = i;
+            }
+        }
+
+        Vector3 finalPos = BezierUtility.ClosestPointOnCurve(toPoint,
+            points[ci].position, points[ci + 1].position,
+            points[ci].globalHandle2, points[ci + 1].globalHandle1,
+            out float finalT);
+
+        return finalPos;
     }
 
     /// <summary>
