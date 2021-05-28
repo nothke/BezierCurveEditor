@@ -469,6 +469,12 @@ public class BezierCurve : MonoBehaviour
         return GetPoint(tbp.p1, tbp.p2, tbp.t);
     }
 
+    public Vector3 GetLocalPointAt(float t)
+    {
+        TBetweenPointsData tbp = GetTBetweenPoints(t);
+        return GetPointLocal(tbp.p1, tbp.p2, tbp.t);
+    }
+
     public Vector3 GetTangentAt(float t)
     {
         TBetweenPointsData tbp = GetTBetweenPoints(t);
