@@ -70,8 +70,6 @@ public static class BezierCurveUpgrade
 
                 Debug.Log($"Upgraded curve \"{curve.name}\" to v3 and converted {ct} points to GameObjectless points", curve);
             }
-            else
-                Debug.LogWarning($"Upgraded \"{curve.name}\", but no BezierPoints found", curve);
 
             curve.version = 3;
         }

@@ -562,8 +562,6 @@ public class BezierCurveEditor : Editor
 
     static void DrawPointSceneGUI(CurvePoint point, int index)
     {
-        Handles.Label(point.position + new Vector3(0, HandleUtility.GetHandleSize(point.position) * 0.4f, 0), index.ToString());
-
         Handles.color = Color.green;
 
         // While using a live tool, the selection is disabled because it messes with controlId of the tool
@@ -617,6 +615,17 @@ public class BezierCurveEditor : Editor
             Handles.color = Color.yellow;
             Handles.DrawLine(point.position, point.globalHandle1);
             Handles.DrawLine(point.position, point.globalHandle2);
+        }
+
+        {
+            Vector2 screenPos = HandleUtility.WorldToGUIPoint(point.position);
+            screenPos.x += 12;
+            screenPos.y -= 5;
+
+            var screenRay = HandleUtility.GUIPointToWorldRay(screenPos);
+            var p = screenRay.GetPoint(1);
+
+            Handles.Label(p, index.ToString());
         }
     }
 
@@ -740,9 +749,9 @@ public class BezierCurveEditor : Editor
             }
         }
 
-        Debug.DrawRay(points[0].position, normal * 100, Color.yellow, 1);
+        //Debug.DrawRay(points[0].position, normal * 100, Color.yellow, 1);
 
-        Debug.DrawRay(median, Vector3.forward * 100, Color.red, 1);
+        //Debug.DrawRay(median, Vector3.forward * 100, Color.red, 1);
     }
 
     void Subdivide()
