@@ -44,16 +44,6 @@ public class BezierPoint : MonoBehaviour
     public BezierCurve curve
     {
         get { return _curve; }
-        set
-        {
-            /*
-            if (value != _curve)
-            {
-                if (_curve) _curve.RemovePoint(this);
-                _curve = value;
-                if (_curve) _curve.AddPoint(this);
-            }*/
-        }
     }
 
     /// <summary>

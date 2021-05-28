@@ -195,6 +195,11 @@ public class BezierCurve : MonoBehaviour
         dirty = true;
     }
 
+    void Reset()
+    {
+        drawColor = UnityEngine.Random.ColorHSV(0, 1, 0.7f, 0.8f, 1, 1);
+    }
+
     #endregion
 
     #region PublicFunctions
