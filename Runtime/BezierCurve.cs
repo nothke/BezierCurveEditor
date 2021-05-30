@@ -269,6 +269,20 @@ public class BezierCurve : MonoBehaviour
         }
     }
 
+    public void Reverse()
+    {
+        Array.Reverse(points);
+
+        for (int i = 0; i < points.Length; i++)
+        {
+            Vector3 temp = points[i].handle1;
+            points[i].handle1 = points[i].handle2;
+            points[i].handle2 = temp;
+        }
+
+        dirty = true;
+    }
+
     /// <summary>
     ///     - Adds the given point to the end of the curve ("points" array)
     /// </summary>

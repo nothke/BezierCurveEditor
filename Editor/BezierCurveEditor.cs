@@ -160,10 +160,11 @@ public class BezierCurveEditor : Editor
         }
         EditorGUILayout.EndHorizontal();
 
+        if (GUILayout.Button("Reverse"))
+            Reverse();
+
         if (GUILayout.Button("Center Pivot"))
-        {
             CenterPivot();
-        }
 
         if (GUI.changed)
         {
@@ -963,6 +964,15 @@ public class BezierCurveEditor : Editor
         serializedObject.ApplyModifiedProperties();
 
         RegisterPointsChanged();
+    }
+
+    void Reverse()
+    {
+        Undo.RecordObject(curve, "Reverse Curve");
+
+        curve.Reverse();
+
+        serializedObject.ApplyModifiedProperties();
     }
 
     bool GetMouseSceneHit(out RaycastHit hit)
