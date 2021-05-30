@@ -271,6 +271,18 @@ public class BezierCurveEditor : Editor
                 var mousePos = Event.current.mousePosition;
                 Rect selectionRect = new Rect(selectionStartPos, mousePos - selectionStartPos);
 
+                if (selectionRect.width < 0)
+                {
+                    selectionRect.x += selectionRect.width;
+                    selectionRect.width = -selectionRect.width;
+                }
+
+                if (selectionRect.height < 0)
+                {
+                    selectionRect.y += selectionRect.height;
+                    selectionRect.height = -selectionRect.height;
+                }
+
                 selectedPoints.Clear();
                 for (int i = 0; i < curve.pointCount; i++)
                 {
