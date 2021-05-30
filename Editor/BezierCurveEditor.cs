@@ -818,52 +818,64 @@ public class BezierCurveEditor : Editor
     {
         selectedPoints.Sort();
 
-        if (selectedPoints[0] != selectedPoints[1] - 1)
-        {
-            Debug.LogWarning("Cannot subdivide non sequential points");
+        if (selectedPoints.Count < 2)
             return;
+
+        for (int i = 0; i < selectedPoints.Count - 1; i++)
+        {
+            if (selectedPoints[i] + 1 != selectedPoints[i + 1])
+            {
+                //Debug.Log($"{selectedPoints[i]}, {selectedPoints[i + 1]}");
+                Debug.LogWarning("Cannot subdivide non sequential points");
+                return;
+            }
         }
 
         Undo.RecordObject(curve, "Subdivide");
 
-        CurvePoint point1 = curve[selectedPoints[0]];
-        CurvePoint point2 = curve[selectedPoints[1]];
-
-        BezierUtility.SplitBezier(0.5f,
-            point1.position, point2.position,
-            point1.globalHandle2, point2.globalHandle1,
-            out Vector3 leftStartPosition, out Vector3 leftEndPosition,
-            out Vector3 leftStartTangent, out Vector3 leftEndTangent,
-            out Vector3 rightStartPosition, out Vector3 rightEndPosition,
-            out Vector3 rightStartTangent, out Vector3 rightEndTangent);
-
-        CurvePoint newPoint = new CurvePoint(curve)
+        for (int i = selectedPoints.Count - 2; i >= 0; i--)
         {
-            handleStyle = CurvePoint.HandleStyle.Aligned,
+            CurvePoint point1 = curve[selectedPoints[i]];
+            CurvePoint point2 = curve[selectedPoints[i + 1]];
 
-            position = leftEndPosition,
-            globalHandle1 = leftEndTangent,
-            globalHandle2 = rightStartTangent
-        };
+            BezierUtility.SplitBezier(0.5f,
+                point1.position, point2.position,
+                point1.globalHandle2, point2.globalHandle1,
+                out _, out Vector3 leftEndPosition,
+                out Vector3 leftStartTangent, out Vector3 leftEndTangent,
+                out _, out _,
+                out Vector3 rightStartTangent, out Vector3 rightEndTangent);
 
-        int iN = selectedPoints[0] + 1;
-        pointsProp.InsertArrayElementAtIndex(iN);
+            CurvePoint newPoint = new CurvePoint(curve)
+            {
+                handleStyle = CurvePoint.HandleStyle.Aligned,
 
-        // New point
-        curve[iN].position = leftEndPosition;
-        curve[iN].globalHandle1 = leftEndTangent;
-        curve[iN].globalHandle2 = rightStartTangent;
-        SetPointHandles(iN);
+                position = leftEndPosition,
+                globalHandle1 = leftEndTangent,
+                globalHandle2 = rightStartTangent
+            };
 
-        int i0 = selectedPoints[0];
-        curve[i0].globalHandle2 = leftStartTangent;
-        SetPointHandles(i0);
+            int iN = selectedPoints[i] + 1;
+            pointsProp.InsertArrayElementAtIndex(iN);
 
-        int i1 = selectedPoints[0] + 2;
-        curve[i1].globalHandle1 = rightEndTangent;
-        SetPointHandles(i1);
+            // New point
+            curve[iN].position = leftEndPosition;
+            curve[iN].globalHandle1 = leftEndTangent;
+            curve[iN].globalHandle2 = rightStartTangent;
+            SetPointHandles(iN);
 
-        RegisterPointsChanged();
+            int i0 = selectedPoints[i];
+            curve[i0].globalHandle2 = leftStartTangent;
+            SetPointHandles(i0);
+
+            int i1 = selectedPoints[i] + 2;
+            curve[i1].globalHandle1 = rightEndTangent;
+            SetPointHandles(i1);
+
+            RegisterPointsChanged();
+        }
+
+        selectedPoints.Clear();
 
         void SetPointHandles(int index)
         {
