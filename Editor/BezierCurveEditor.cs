@@ -39,6 +39,8 @@ public class BezierCurveEditor : Editor
     Vector3 multieditScale = Vector3.one;
     Vector3 lastScale = Vector3.one;
 
+    static bool lockDirection = false;
+
     void OnEnable()
     {
         curve = (BezierCurve)target;
@@ -100,9 +102,6 @@ public class BezierCurveEditor : Editor
 
                 DrawPointInspector(curve[i], i);
             }
-
-            //if (GUILayout.Button("Add Point"))
-            //    AddPoint();
         }
 
         toolMode = (ToolMode)GUILayout.SelectionGrid((int)toolMode, toolModesText, 3);
@@ -455,6 +454,8 @@ public class BezierCurveEditor : Editor
             RemovePoints();
         }
         if (selectedPoints.Count < 1) GUI.enabled = true;
+
+        lockDirection = GUILayout.Toggle(lockDirection, "Lock handle direction");
     }
 
     void DrawPointInspector(CurvePoint point, int index)
@@ -647,6 +648,13 @@ public class BezierCurveEditor : Editor
             Vector3 newGlobal1 = Handles.FreeMoveHandle(point.globalHandle1, Quaternion.identity, HandleUtility.GetHandleSize(point.globalHandle1) * 0.075f, Vector3.zero, Handles.CircleHandleCap);
             if (point.globalHandle1 != newGlobal1)
             {
+                Vector3 newLocal = newGlobal1 - point.position;
+                if (lockDirection)
+                {
+                    newLocal = Vector3.Project(newLocal, point.handle1.normalized);
+                    newGlobal1 = point.position + newLocal;
+                }
+
                 Undo.RecordObject(point.curve, "Move Handle");
                 point.globalHandle1 = newGlobal1;
 
@@ -662,6 +670,13 @@ public class BezierCurveEditor : Editor
             Vector3 newGlobal2 = Handles.FreeMoveHandle(point.globalHandle2, Quaternion.identity, HandleUtility.GetHandleSize(point.globalHandle2) * 0.075f, Vector3.zero, Handles.CircleHandleCap);
             if (point.globalHandle2 != newGlobal2)
             {
+                Vector3 newLocal = newGlobal2 - point.position;
+                if (lockDirection)
+                {
+                    newLocal = Vector3.Project(newLocal, point.handle2.normalized);
+                    newGlobal2 = point.position + newLocal;
+                }
+
                 Undo.RecordObject(point.curve, "Move Handle");
                 point.globalHandle2 = newGlobal2;
 
