@@ -839,26 +839,41 @@ public class BezierCurveEditor : Editor
 
         CurvePoint newPoint = new CurvePoint(curve)
         {
-            handleStyle = CurvePoint.HandleStyle.Equal,
+            handleStyle = CurvePoint.HandleStyle.Aligned,
 
             position = leftEndPosition,
             globalHandle1 = leftEndTangent,
             globalHandle2 = rightStartTangent
         };
 
-        int index = selectedPoints[0] + 1;
-        pointsProp.InsertArrayElementAtIndex(index);
-        curve[index].position = leftEndPosition;
-        curve[index].globalHandle1 = leftEndTangent;
-        curve[index].globalHandle2 = rightStartTangent;
+        int iN = selectedPoints[0] + 1;
+        pointsProp.InsertArrayElementAtIndex(iN);
 
-        var prop = pointsProp.GetArrayElementAtIndex(index);
-        prop.FindPropertyRelative("_position").vector3Value = curve[index].localPosition;
-        prop.FindPropertyRelative("_handle1").vector3Value = curve[index].handle1;
-        prop.FindPropertyRelative("_handle2").vector3Value = curve[index].handle2;
-        serializedObject.ApplyModifiedProperties();
+        // New point
+        curve[iN].position = leftEndPosition;
+        curve[iN].globalHandle1 = leftEndTangent;
+        curve[iN].globalHandle2 = rightStartTangent;
+        SetPointHandles(iN);
+
+        int i0 = selectedPoints[0];
+        curve[i0].globalHandle2 = leftStartTangent;
+        SetPointHandles(i0);
+
+        int i1 = selectedPoints[0] + 2;
+        curve[i1].globalHandle1 = rightEndTangent;
+        SetPointHandles(i1);
 
         RegisterPointsChanged();
+
+        void SetPointHandles(int index)
+        {
+            var prop = pointsProp.GetArrayElementAtIndex(index);
+            prop.FindPropertyRelative("handleStyle").enumValueIndex = (int)CurvePoint.HandleStyle.Aligned;
+            prop.FindPropertyRelative("_position").vector3Value = curve[index].localPosition;
+            prop.FindPropertyRelative("_handle1").vector3Value = curve[index].handle1;
+            prop.FindPropertyRelative("_handle2").vector3Value = curve[index].handle2;
+            serializedObject.ApplyModifiedProperties();
+        }
     }
 
     bool GetMouseSceneHit(out RaycastHit hit)
