@@ -453,6 +453,8 @@ public class BezierCurveEditor : Editor
         {
             RemovePoints();
         }
+        if (GUILayout.Button("Level"))
+            Level();
         if (selectedPoints.Count < 1) GUI.enabled = true;
 
         lockDirection = GUILayout.Toggle(lockDirection, "Lock handle direction");
@@ -882,6 +884,32 @@ public class BezierCurveEditor : Editor
             prop.FindPropertyRelative("_handle2").vector3Value = curve[index].handle2;
             serializedObject.ApplyModifiedProperties();
         }
+    }
+
+    void Level()
+    {
+        Vector3 median = Vector3.zero;
+        for (int sp = 0; sp < selectedPoints.Count; sp++)
+        {
+            int i = selectedPoints[sp];
+            Vector3 pos = curve[i].position;
+            median += pos / selectedPoints.Count;
+        }
+
+        for (int sp = 0; sp < selectedPoints.Count; sp++)
+        {
+            int i = selectedPoints[sp];
+            Vector3 pos = curve[i].position;
+
+            pos.y = median.y;
+            curve[i].handle1 = new Vector3(curve[i].handle1.x, 0, curve[i].handle1.z);
+            curve[i].handle2 = new Vector3(curve[i].handle2.x, 0, curve[i].handle2.z);
+            curve[i].position = pos;
+        }
+
+        curve.SetDirty();
+        Undo.RecordObject(curve, "Level Points");
+        RegisterPointsChanged();
     }
 
     bool GetMouseSceneHit(out RaycastHit hit)
