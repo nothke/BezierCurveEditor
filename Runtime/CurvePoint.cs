@@ -30,9 +30,10 @@ public class CurvePoint
     /// </summary>
     public enum HandleStyle
     {
-        Connected,
-        Broken,
-        None,
+        Aligned = 3,
+        Equal = 0,
+        Broken = 1,
+        None = 2,
     }
 
     #endregion
@@ -104,7 +105,7 @@ public class CurvePoint
             if (_handle1 == value) return;
             _handle1 = value;
             if (handleStyle == HandleStyle.None) handleStyle = HandleStyle.Broken;
-            else if (handleStyle == HandleStyle.Connected) _handle2 = -value;
+            else if (handleStyle == HandleStyle.Equal) _handle2 = -value;
             _curve.SetDirty();
         }
     }
@@ -136,7 +137,7 @@ public class CurvePoint
             if (_handle2 == value) return;
             _handle2 = value;
             if (handleStyle == HandleStyle.None) handleStyle = HandleStyle.Broken;
-            else if (handleStyle == HandleStyle.Connected) _handle1 = -value;
+            else if (handleStyle == HandleStyle.Equal) _handle1 = -value;
             _curve.SetDirty();
         }
     }

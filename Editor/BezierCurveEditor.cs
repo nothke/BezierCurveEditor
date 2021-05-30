@@ -497,11 +497,13 @@ public class BezierCurveEditor : Editor
         EditorGUI.indentLevel++;
         EditorGUI.indentLevel++;
 
-        int newType = (int)((object)EditorGUILayout.EnumPopup("Handle Type", (CurvePoint.HandleStyle)handleStyleProp.enumValueIndex));
+        //int newType = (int)((object)EditorGUILayout.EnumPopup("Handle Type", (CurvePoint.HandleStyle)handleStyleProp.enumValueIndex));
 
-        if (newType != handleStyleProp.enumValueIndex)
+        EditorGUI.BeginChangeCheck();
+        EditorGUILayout.PropertyField(handleStyleProp);
+        if (EditorGUI.EndChangeCheck())
         {
-            handleStyleProp.enumValueIndex = newType;
+            int newType = handleStyleProp.enumValueIndex;
             if (newType == 0)
             {
                 if (handle1Prop.vector3Value != Vector3.zero) handle2Prop.vector3Value = -handle1Prop.vector3Value;
@@ -533,7 +535,7 @@ public class BezierCurveEditor : Editor
 
         EditorGUILayout.PropertyField(positionProp);
 
-        // CONNECTED bezier type
+        // EQUAL bezier type
         if (handleStyleProp.enumValueIndex == 0)
         {
             // Makes sure that handles are reflected when manipulated in inspector
@@ -549,6 +551,25 @@ public class BezierCurveEditor : Editor
             if (EditorGUI.EndChangeCheck())
             {
                 handle1Prop.vector3Value = -handle2Prop.vector3Value;
+            }
+        }
+        // ALIGNED bezier type
+        else if (handleStyleProp.enumValueIndex == 3)
+        {
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(handle1Prop);
+            if (EditorGUI.EndChangeCheck())
+            {
+                handle2Prop.vector3Value =
+                    -handle1Prop.vector3Value.normalized * handle2Prop.vector3Value.magnitude;
+            }
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(handle2Prop);
+            if (EditorGUI.EndChangeCheck())
+            {
+                handle1Prop.vector3Value =
+                    -handle2Prop.vector3Value.normalized * handle1Prop.vector3Value.magnitude;
             }
         }
 
@@ -621,7 +642,14 @@ public class BezierCurveEditor : Editor
             {
                 Undo.RecordObject(point.curve, "Move Handle");
                 point.globalHandle1 = newGlobal1;
-                if (point.handleStyle == CurvePoint.HandleStyle.Connected) point.globalHandle2 = -(newGlobal1 - point.position) + point.position;
+
+                if (point.handleStyle == CurvePoint.HandleStyle.Equal)
+                    point.globalHandle2 = -(newGlobal1 - point.position) + point.position;
+                else if (point.handleStyle == CurvePoint.HandleStyle.Aligned)
+                {
+                    Vector3 otherHandleTarget = -Vector3.Normalize(newGlobal1 - point.position);
+                    point.globalHandle2 = otherHandleTarget * point.handle2.magnitude + point.position;
+                }
             }
 
             Vector3 newGlobal2 = Handles.FreeMoveHandle(point.globalHandle2, Quaternion.identity, HandleUtility.GetHandleSize(point.globalHandle2) * 0.075f, Vector3.zero, Handles.CircleHandleCap);
@@ -629,7 +657,14 @@ public class BezierCurveEditor : Editor
             {
                 Undo.RecordObject(point.curve, "Move Handle");
                 point.globalHandle2 = newGlobal2;
-                if (point.handleStyle == CurvePoint.HandleStyle.Connected) point.globalHandle1 = -(newGlobal2 - point.position) + point.position;
+
+                if (point.handleStyle == CurvePoint.HandleStyle.Equal)
+                    point.globalHandle1 = -(newGlobal2 - point.position) + point.position;
+                else if (point.handleStyle == CurvePoint.HandleStyle.Aligned)
+                {
+                    Vector3 otherHandleTarget = -Vector3.Normalize(newGlobal2 - point.position);
+                    point.globalHandle1 = otherHandleTarget * point.handle1.magnitude + point.position;
+                }
             }
 
             Handles.color = Color.yellow;
@@ -667,19 +702,19 @@ public class BezierCurveEditor : Editor
         BezierCurve curve = curveObject.AddComponent<BezierCurve>();
 
         CurvePoint p1 = curve.AddPointAt(Vector3.forward * 0.5f);
-        p1.handleStyle = CurvePoint.HandleStyle.Connected;
+        p1.handleStyle = CurvePoint.HandleStyle.Equal;
         p1.handle1 = new Vector3(-0.28f, 0, 0);
 
         CurvePoint p2 = curve.AddPointAt(Vector3.right * 0.5f);
-        p2.handleStyle = CurvePoint.HandleStyle.Connected;
+        p2.handleStyle = CurvePoint.HandleStyle.Equal;
         p2.handle1 = new Vector3(0, 0, 0.28f);
 
         CurvePoint p3 = curve.AddPointAt(-Vector3.forward * 0.5f);
-        p3.handleStyle = CurvePoint.HandleStyle.Connected;
+        p3.handleStyle = CurvePoint.HandleStyle.Equal;
         p3.handle1 = new Vector3(0.28f, 0, 0);
 
         CurvePoint p4 = curve.AddPointAt(-Vector3.right * 0.5f);
-        p4.handleStyle = CurvePoint.HandleStyle.Connected;
+        p4.handleStyle = CurvePoint.HandleStyle.Equal;
         p4.handle1 = new Vector3(0, 0, -0.28f);
 
         curve.close = true;
@@ -763,6 +798,8 @@ public class BezierCurveEditor : Editor
         {
             Quaternion rot = Quaternion.FromToRotation(points[i].handle2.normalized, normal);
             points[i].handle2 = rot * points[i].handle2;
+
+            points[i].handle1 = -points[i].handle2.normalized * points[i].handle1.magnitude;
         }
 
         if (points.Count > 2)
@@ -775,10 +812,6 @@ public class BezierCurveEditor : Editor
 
         Undo.RecordObject(curve, "Align Points");
         RegisterPointsChanged();
-
-        //Debug.DrawRay(points[0].position, normal * 100, Color.yellow, 1);
-
-        //Debug.DrawRay(median, Vector3.forward * 100, Color.red, 1);
     }
 
     void Subdivide()
@@ -806,7 +839,7 @@ public class BezierCurveEditor : Editor
 
         CurvePoint newPoint = new CurvePoint(curve)
         {
-            handleStyle = CurvePoint.HandleStyle.Connected,
+            handleStyle = CurvePoint.HandleStyle.Equal,
 
             position = leftEndPosition,
             globalHandle1 = leftEndTangent,
