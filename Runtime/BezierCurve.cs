@@ -210,6 +210,11 @@ public class BezierCurve : MonoBehaviour
 
     void Reset()
     {
+        RandomizeColor();
+    }
+
+    public void RandomizeColor()
+    {
         drawColor = UnityEngine.Random.ColorHSV(0, 1, 0.7f, 0.8f, 1, 1);
     }
 

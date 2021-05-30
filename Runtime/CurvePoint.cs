@@ -20,6 +20,18 @@ public class CurvePoint
         _curve = curve;
     }
 
+    public CurvePoint(BezierCurve curve, CurvePoint other)
+    {
+        _curve = curve;
+        handleStyle = other.handleStyle;
+
+        _position = other._position;
+        _handle1 = other._handle1;
+        _handle2 = other._handle2;
+
+        _curve.SetDirty();
+    }
+
     #region PublicEnumerations
 
     /// <summary>

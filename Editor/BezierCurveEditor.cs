@@ -457,6 +457,11 @@ public class BezierCurveEditor : Editor
             Level();
         if (selectedPoints.Count < 1) GUI.enabled = true;
 
+        if (selectedPoints.Count != 1) GUI.enabled = false;
+        if (GUILayout.Button("Split"))
+            Split();
+        if (selectedPoints.Count != 1) GUI.enabled = true;
+
         lockDirection = GUILayout.Toggle(lockDirection, "Lock handle direction");
     }
 
@@ -601,8 +606,10 @@ public class BezierCurveEditor : Editor
 
     void RemovePoint(int index)
     {
-        pointsProp.MoveArrayElement(index, curve.pointCount - 1);
-        pointsProp.arraySize--;
+        pointsProp.DeleteArrayElementAtIndex(index);
+
+        //pointsProp.MoveArrayElement(index, curve.pointCount - 1);
+        //pointsProp.arraySize--;
 
         curve.SetDirty();
 
@@ -909,6 +916,40 @@ public class BezierCurveEditor : Editor
 
         curve.SetDirty();
         Undo.RecordObject(curve, "Level Points");
+        RegisterPointsChanged();
+    }
+
+    void Split()
+    {
+        if (selectedPoints.Count != 1)
+            return;
+
+        int splitIndex = selectedPoints[0];
+
+        if (splitIndex == 0 || splitIndex == curve.pointCount - 1)
+            return;
+
+        GameObject newCurveGO = new GameObject(curve.name);
+        newCurveGO.transform.position = curve.transform.position;
+
+        Undo.RegisterCreatedObjectUndo(newCurveGO, "Split");
+
+        BezierCurve newCurve = newCurveGO.AddComponent<BezierCurve>();
+
+        for (int pi = splitIndex; pi < curve.pointCount; pi++)
+        {
+            newCurve.AddPoint(new CurvePoint(curve, curve[pi]));
+        }
+
+        Undo.RecordObject(curve, "Split Curve");
+
+        for (int pi = curve.pointCount - 1; pi > splitIndex; pi--)
+        {
+            pointsProp.DeleteArrayElementAtIndex(pi);
+        }
+
+        serializedObject.ApplyModifiedProperties();
+
         RegisterPointsChanged();
     }
 
