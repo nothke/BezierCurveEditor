@@ -716,32 +716,6 @@ public class BezierCurveEditor : Editor
         }
     }
 
-    [MenuItem("GameObject/Create Other/Bezier Curve")]
-    public static void CreateCurve(MenuCommand command)
-    {
-        GameObject curveObject = new GameObject("BezierCurve");
-        Undo.RecordObject(curveObject, "Undo Create Curve");
-        BezierCurve curve = curveObject.AddComponent<BezierCurve>();
-
-        CurvePoint p1 = curve.AddPointAt(Vector3.forward * 0.5f);
-        p1.handleStyle = CurvePoint.HandleStyle.Equal;
-        p1.handle1 = new Vector3(-0.28f, 0, 0);
-
-        CurvePoint p2 = curve.AddPointAt(Vector3.right * 0.5f);
-        p2.handleStyle = CurvePoint.HandleStyle.Equal;
-        p2.handle1 = new Vector3(0, 0, 0.28f);
-
-        CurvePoint p3 = curve.AddPointAt(-Vector3.forward * 0.5f);
-        p3.handleStyle = CurvePoint.HandleStyle.Equal;
-        p3.handle1 = new Vector3(0.28f, 0, 0);
-
-        CurvePoint p4 = curve.AddPointAt(-Vector3.right * 0.5f);
-        p4.handleStyle = CurvePoint.HandleStyle.Equal;
-        p4.handle1 = new Vector3(0, 0, -0.28f);
-
-        curve.close = true;
-    }
-
     void CenterPivot()
     {
         if (curve.pointCount == 0)
@@ -917,4 +891,52 @@ public class BezierCurveEditor : Editor
 
         return Physics.Raycast(ray, out hit);
     }
+
+    static BezierCurve CreateCurveObject(out Vector3 pos, Object parent)
+    {
+        GameObject curveObject = new GameObject("BezierCurve");
+        pos = SceneView.lastActiveSceneView.pivot;
+        GameObjectUtility.SetParentAndAlign(curveObject, parent as GameObject);
+        Selection.activeObject = curveObject;
+
+        if (!parent)
+            curveObject.transform.position = pos;
+
+        Undo.RegisterCreatedObjectUndo(curveObject, "Create Curve");
+
+        BezierCurve curve = curveObject.AddComponent<BezierCurve>();
+
+        return curve;
+    }
+
+    [MenuItem("GameObject/Bezier Curve/Empty", false, 6)]
+    public static void CreateCurveEmpty(MenuCommand command)
+    {
+        CreateCurveObject(out _, command.context);
+    }
+
+    [MenuItem("GameObject/Bezier Curve/Circle", false, 6)]
+    public static void CreateCurveCircle(MenuCommand command)
+    {
+        var curve = CreateCurveObject(out Vector3 pos, command.context);
+
+        CurvePoint p1 = curve.AddPointAt(pos + Vector3.forward * 0.5f);
+        p1.handleStyle = CurvePoint.HandleStyle.Equal;
+        p1.handle1 = new Vector3(-0.28f, 0, 0);
+
+        CurvePoint p2 = curve.AddPointAt(pos + Vector3.right * 0.5f);
+        p2.handleStyle = CurvePoint.HandleStyle.Equal;
+        p2.handle1 = new Vector3(0, 0, 0.28f);
+
+        CurvePoint p3 = curve.AddPointAt(pos + -Vector3.forward * 0.5f);
+        p3.handleStyle = CurvePoint.HandleStyle.Equal;
+        p3.handle1 = new Vector3(0.28f, 0, 0);
+
+        CurvePoint p4 = curve.AddPointAt(pos + -Vector3.right * 0.5f);
+        p4.handleStyle = CurvePoint.HandleStyle.Equal;
+        p4.handle1 = new Vector3(0, 0, -0.28f);
+
+        curve.close = true;
+    }
+
 }
