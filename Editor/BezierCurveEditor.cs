@@ -117,27 +117,6 @@ public class BezierCurveEditor : Editor
 
         lastToolMode = toolMode;
 
-        #region Tool operators
-
-        if (selectedPoints.Count < 2) GUI.enabled = false;
-        if (GUILayout.Button("Align"))
-        {
-            AlignPoints();
-        }
-        if (GUILayout.Button("Subdivide"))
-        {
-            Subdivide();
-        }
-        if (selectedPoints.Count < 2) GUI.enabled = true;
-
-        if (selectedPoints.Count < 1) GUI.enabled = false;
-        if (GUILayout.Button("Remove"))
-        {
-            RemovePoints();
-        }
-        if (selectedPoints.Count < 1) GUI.enabled = true;
-
-        #endregion
 
         EditorGUILayout.PropertyField(mirrorProp);
 
@@ -147,17 +126,17 @@ public class BezierCurveEditor : Editor
         }
 
         EditorGUILayout.BeginHorizontal();
-        if (GUILayout.Button("Snap to X"))
+        if (GUILayout.Button("Zero X"))
         {
             RegisterPointsAndTransforms("Snap to X");
             curve.SnapAllNodesToAxis(BezierCurve.Axis.X);
         }
-        if (GUILayout.Button("Snap to Y"))
+        if (GUILayout.Button("Zero Y"))
         {
             RegisterPointsAndTransforms("Snap to Y");
             curve.SnapAllNodesToAxis(BezierCurve.Axis.Y);
         }
-        if (GUILayout.Button("Snap to Z"))
+        if (GUILayout.Button("Zero Z"))
         {
             RegisterPointsAndTransforms("Snap to Z");
             curve.SnapAllNodesToAxis(BezierCurve.Axis.Z);
@@ -182,19 +161,10 @@ public class BezierCurveEditor : Editor
         }
         EditorGUILayout.EndHorizontal();
 
-
-
         if (GUILayout.Button("Center Pivot"))
         {
             CenterPivot();
         }
-
-        /*
-        if (GUILayout.Button("Clean-up null points"))
-        {
-            curve.CleanupNullPoints();
-        }
-        */
 
         if (GUI.changed)
         {
@@ -293,6 +263,8 @@ public class BezierCurveEditor : Editor
         }
         else if (toolMode == ToolMode.Editing)
         {
+            DrawSceneWindow();
+
             int controlId = GUIUtility.GetControlID(FocusType.Passive);
 
             if (regionSelect)
@@ -448,6 +420,41 @@ public class BezierCurveEditor : Editor
         blockSelection = toolMode != ToolMode.None;
 
 
+    }
+
+    Rect toolWindowRect = new Rect(20, 40, 200, 100);
+
+    void DrawSceneWindow()
+    {
+        toolWindowRect = GUILayout.Window(5324, toolWindowRect, SceneWindow, "Curve Tools", GUILayout.Width(200));
+    }
+
+    void SceneWindow(int id)
+    {
+        DrawToolButtons();
+
+        GUILayout.Label("Selected: " + selectedPoints.Count);
+    }
+
+    void DrawToolButtons()
+    {
+        if (selectedPoints.Count < 2) GUI.enabled = false;
+        if (GUILayout.Button("Align"))
+        {
+            AlignPoints();
+        }
+        if (GUILayout.Button("Subdivide"))
+        {
+            Subdivide();
+        }
+        if (selectedPoints.Count < 2) GUI.enabled = true;
+
+        if (selectedPoints.Count < 1) GUI.enabled = false;
+        if (GUILayout.Button("Remove"))
+        {
+            RemovePoints();
+        }
+        if (selectedPoints.Count < 1) GUI.enabled = true;
     }
 
     void DrawPointInspector(CurvePoint point, int index)
