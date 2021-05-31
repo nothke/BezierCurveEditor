@@ -435,7 +435,7 @@ public class BezierCurveEditor : Editor
 
     }
 
-    Rect toolWindowRect = new Rect(20, 40, 200, 100);
+    Rect toolWindowRect = new Rect(20, 40, 200, 0);
 
     void DrawSceneWindow()
     {
@@ -463,36 +463,98 @@ public class BezierCurveEditor : Editor
 
             DrawToolButtons();
 
+            string handleTypeStr = "None";
+
+            if (selectedPoints.Count > 0)
+            {
+                CurvePoint.HandleStyle handleStyle;
+                handleStyle = curve[selectedPoints[0]].handleStyle;
+
+                bool isMixed = false;
+                for (int i = 1; i < selectedPoints.Count; i++)
+                {
+                    if (curve[selectedPoints[i]].handleStyle != handleStyle)
+                        isMixed = true;
+                }
+
+                handleTypeStr = isMixed ? "Mixed" : handleStyle.ToString();
+            }
+
+            GUILayout.Label("Handle type: " + handleTypeStr + "; Change to:");
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Equal")) ChangeHandleTypesTo(CurvePoint.HandleStyle.Equal);
+            if (GUILayout.Button("Aligned")) ChangeHandleTypesTo(CurvePoint.HandleStyle.Aligned);
+            if (GUILayout.Button("Broken")) ChangeHandleTypesTo(CurvePoint.HandleStyle.Broken);
+            if (GUILayout.Button("None")) ChangeHandleTypesTo(CurvePoint.HandleStyle.None);
+            GUILayout.EndHorizontal();
+
             GUILayout.Label("Selected: " + selectedPoints.Count);
         }
     }
 
+    void ChangeHandleTypesTo(CurvePoint.HandleStyle style)
+    {
+        Undo.RecordObject(curve, "Change Handle Type");
+        for (int sp = 0; sp < selectedPoints.Count; sp++)
+        {
+            int i = selectedPoints[sp];
+            curve[i].handleStyle = style;
+
+            if (curve[i].handleStyle == CurvePoint.HandleStyle.None)
+            {
+                curve[i].handle1 = Vector3.zero;
+                curve[i].handle2 = Vector3.zero;
+            }
+
+            curve[i].handleStyle = style;
+        }
+    }
+
+    void HideIfLessThan(int i)
+    {
+        GUI.enabled = true;
+
+        if (selectedPoints.Count < i)
+            GUI.enabled = false;
+    }
+
+    void Unhide()
+    {
+        GUI.enabled = true;
+    }
+
     void DrawToolButtons()
     {
-        if (selectedPoints.Count < 2) GUI.enabled = false;
-        if (GUILayout.Button("Align"))
-        {
-            AlignPoints();
-        }
-        if (GUILayout.Button("Subdivide"))
-        {
-            Subdivide();
-        }
-        if (selectedPoints.Count < 2) GUI.enabled = true;
+        GUILayout.BeginHorizontal();
 
-        if (selectedPoints.Count < 1) GUI.enabled = false;
-        if (GUILayout.Button("Remove"))
-        {
-            RemovePoints();
-        }
+        HideIfLessThan(2);
+        if (GUILayout.Button("Align"))
+            AlignPoints();
+
+        HideIfLessThan(1);
         if (GUILayout.Button("Level"))
             Level();
-        if (selectedPoints.Count < 1) GUI.enabled = true;
+
+        GUILayout.EndHorizontal();
+
+        GUILayout.BeginHorizontal();
+
+        HideIfLessThan(2);
+        if (GUILayout.Button("Subdivide"))
+            Subdivide();
+
+        HideIfLessThan(1);
+        if (GUILayout.Button("Remove"))
+            RemovePoints();
+
+        GUILayout.EndHorizontal();
 
         if (selectedPoints.Count != 1) GUI.enabled = false;
         if (GUILayout.Button("Split"))
             Split();
-        if (selectedPoints.Count != 1) GUI.enabled = true;
+
+        Unhide();
 
         lockDirection = GUILayout.Toggle(lockDirection, "Lock handle direction");
     }
