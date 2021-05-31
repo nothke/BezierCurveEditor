@@ -117,7 +117,7 @@ public class BezierCurveEditor : Editor
         lastToolMode = toolMode;
 
 
-        EditorGUILayout.PropertyField(mirrorProp);
+        EditorGUILayout.PropertyField(mirrorProp, new GUIContent("Show Mirrored"));
 
         if (curve.mirror)
         {
@@ -197,6 +197,8 @@ public class BezierCurveEditor : Editor
             DrawPointSceneGUI(curve[i], i);
         }
 
+        DrawSceneWindow();
+
         if (toolMode == ToolMode.Creating)
         {
 
@@ -263,7 +265,6 @@ public class BezierCurveEditor : Editor
         }
         else if (toolMode == ToolMode.Editing)
         {
-            DrawSceneWindow();
 
             int controlId = GUIUtility.GetControlID(FocusType.Passive);
 
@@ -438,14 +439,32 @@ public class BezierCurveEditor : Editor
 
     void DrawSceneWindow()
     {
-        toolWindowRect = GUILayout.Window(5324, toolWindowRect, SceneWindow, "Curve Tools", GUILayout.Width(200));
+        int x = toolMode == ToolMode.Editing ? 200 : 80;
+
+        toolWindowRect = GUILayout.Window(5324, toolWindowRect, SceneWindow, "Curve Tools", GUILayout.Width(x));
     }
 
     void SceneWindow(int id)
     {
-        DrawToolButtons();
+        if (toolMode != ToolMode.Editing)
+        {
+            if (GUILayout.Button("Edit"))
+                toolMode = ToolMode.Editing;
+        }
+        else
+        {
+            if (GUILayout.Button("End editing"))
+            {
+                toolMode = ToolMode.None;
+                toolWindowRect.height = 0;
+            }
 
-        GUILayout.Label("Selected: " + selectedPoints.Count);
+            EditorGUILayout.Separator();
+
+            DrawToolButtons();
+
+            GUILayout.Label("Selected: " + selectedPoints.Count);
+        }
     }
 
     void DrawToolButtons()
