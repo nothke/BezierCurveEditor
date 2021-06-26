@@ -36,14 +36,14 @@ using UnityEngine;
 
 namespace Nothke.Utils
 {
-    public struct BezierCurve
+    public struct BezierSegment
     {
         public Vector3 start;
         public Vector3 startTangent;
         public Vector3 endTangent;
         public Vector3 end;
 
-        public BezierCurve(Vector3 start, Vector3 startTangent, Vector3 endTangent, Vector3 end)
+        public BezierSegment(Vector3 start, Vector3 startTangent, Vector3 endTangent, Vector3 end)
         {
             this.start = start;
             this.startTangent = startTangent;
