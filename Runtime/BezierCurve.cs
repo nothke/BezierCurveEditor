@@ -512,6 +512,12 @@ public class BezierCurve : MonoBehaviour
         return GetTangent(tbp.p1, tbp.p2, tbp.t);
     }
 
+    public Vector3 GetLocalTangentAt(float t)
+    {
+        var tbp = GetTBetweenPoints(t);
+        return GetLocalTangent(tbp.p1, tbp.p2, tbp.t);
+    }
+
     public Vector3 GetTangent(CurvePoint bp1, CurvePoint bp2, float t)
     {
         if (bp1.handleStyle == CurvePoint.HandleStyle.None &&
