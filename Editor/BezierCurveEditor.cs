@@ -181,7 +181,7 @@ public class BezierCurveEditor : Editor
 
     void RegisterPointsAndTransforms(string message)
     {
-        Undo.RecordObject(curve, message);
+        Undo.RegisterCompleteObjectUndo(curve, message);
     }
 
     void OnSceneGUI()
@@ -333,7 +333,7 @@ public class BezierCurveEditor : Editor
 
                     if (diff != Vector3.zero)
                     {
-                        Undo.RecordObject(curve, "Move Points");
+                        Undo.RegisterCompleteObjectUndo(curve, "Move Points");
                         for (int sp = 0; sp < sct; sp++)
                         {
                             int i = selectedPoints[sp];
@@ -358,7 +358,7 @@ public class BezierCurveEditor : Editor
 
                     if (rotDiff != Quaternion.identity)
                     {
-                        Undo.RecordObject(curve, "Rotate Points");
+                        Undo.RegisterCompleteObjectUndo(curve, "Rotate Points");
                         for (int sp = 0; sp < sct; sp++)
                         {
                             int i = selectedPoints[sp];
@@ -388,7 +388,7 @@ public class BezierCurveEditor : Editor
 
                         if (scaleDiff != Vector3.zero && multieditScale != Vector3.one)
                         {
-                            Undo.RecordObject(curve, "Scale Points");
+                            Undo.RegisterCompleteObjectUndo(curve, "Scale Points");
 
                             for (int sp = 0; sp < sct; sp++)
                             {
@@ -495,7 +495,7 @@ public class BezierCurveEditor : Editor
 
     void ChangeHandleTypesTo(CurvePoint.HandleStyle style)
     {
-        Undo.RecordObject(curve, "Change Handle Type");
+        Undo.RegisterCompleteObjectUndo(curve, "Change Handle Type");
         for (int sp = 0; sp < selectedPoints.Count; sp++)
         {
             int i = selectedPoints[sp];
@@ -707,7 +707,7 @@ public class BezierCurveEditor : Editor
 
         curve.SetDirty();
 
-        Undo.RecordObject(target, "Remove Point");
+        Undo.RegisterCompleteObjectUndo(target, "Remove Point");
 
         return;
     }
@@ -724,7 +724,7 @@ public class BezierCurveEditor : Editor
 
             if (newPosition != point.position)
             {
-                Undo.RecordObject(point.curve, "Move Point");
+                Undo.RegisterCompleteObjectUndo(point.curve, "Move Point");
                 point.position = newPosition;
             }
         }
@@ -736,7 +736,7 @@ public class BezierCurveEditor : Editor
 
             if (newPosition != point.position)
             {
-                Undo.RecordObject(point.curve, "Move Point");
+                Undo.RegisterCompleteObjectUndo(point.curve, "Move Point");
                 point.position = newPosition;
             }
             else if (GUIUtility.hotControl == ctrlId)
@@ -758,7 +758,7 @@ public class BezierCurveEditor : Editor
                     newGlobal1 = point.position + newLocal;
                 }
 
-                Undo.RecordObject(point.curve, "Move Handle");
+                Undo.RegisterCompleteObjectUndo(point.curve, "Move Handle");
                 point.globalHandle1 = newGlobal1;
 
                 if (point.handleStyle == CurvePoint.HandleStyle.Equal)
@@ -780,7 +780,7 @@ public class BezierCurveEditor : Editor
                     newGlobal2 = point.position + newLocal;
                 }
 
-                Undo.RecordObject(point.curve, "Move Handle");
+                Undo.RegisterCompleteObjectUndo(point.curve, "Move Handle");
                 point.globalHandle2 = newGlobal2;
 
                 if (point.handleStyle == CurvePoint.HandleStyle.Equal)
@@ -824,7 +824,7 @@ public class BezierCurveEditor : Editor
         if (curve.pointCount == 0)
             return;
 
-        Undo.RecordObject(target, "Center Pivot");
+        Undo.RegisterCompleteObjectUndo(target, "Center Pivot");
 
         Bounds bounds = new Bounds(curve[0].position, Vector3.zero);
 
@@ -850,7 +850,7 @@ public class BezierCurveEditor : Editor
             posProp.vector3Value = position;
         }
 
-        Undo.RecordObject(curve, "Center Pivot");
+        //Undo.RegisterCompleteObjectUndo(curve, "Center Pivot");
         curveTransformSO.ApplyModifiedProperties();
 
         RegisterPointsChanged();
@@ -909,7 +909,7 @@ public class BezierCurveEditor : Editor
             }
         }
 
-        Undo.RecordObject(curve, "Align Points");
+        Undo.RegisterCompleteObjectUndo(curve, "Align Points");
         RegisterPointsChanged();
     }
 
@@ -930,7 +930,7 @@ public class BezierCurveEditor : Editor
             }
         }
 
-        Undo.RecordObject(curve, "Subdivide");
+        Undo.RegisterCompleteObjectUndo(curve, "Subdivide");
 
         for (int i = selectedPoints.Count - 2; i >= 0; i--)
         {
@@ -997,6 +997,8 @@ public class BezierCurveEditor : Editor
             median += pos / selectedPoints.Count;
         }
 
+        Undo.RegisterCompleteObjectUndo(curve, "Level Points");
+
         for (int sp = 0; sp < selectedPoints.Count; sp++)
         {
             int i = selectedPoints[sp];
@@ -1009,7 +1011,6 @@ public class BezierCurveEditor : Editor
         }
 
         curve.SetDirty();
-        Undo.RecordObject(curve, "Level Points");
         RegisterPointsChanged();
     }
 
@@ -1024,7 +1025,11 @@ public class BezierCurveEditor : Editor
             return;
 
         GameObject newCurveGO = new GameObject(curve.name);
+
+        newCurveGO.transform.parent = curve.transform.parent;
         newCurveGO.transform.position = curve.transform.position;
+        newCurveGO.transform.rotation = curve.transform.rotation;
+        newCurveGO.transform.localScale = curve.transform.localScale;
 
         Undo.RegisterCreatedObjectUndo(newCurveGO, "Split");
 
@@ -1035,7 +1040,7 @@ public class BezierCurveEditor : Editor
             newCurve.AddPoint(new CurvePoint(curve, curve[pi]));
         }
 
-        Undo.RecordObject(curve, "Split Curve");
+        Undo.RegisterCompleteObjectUndo(curve, "Split Curve");
 
         for (int pi = curve.pointCount - 1; pi > splitIndex; pi--)
         {
@@ -1049,7 +1054,7 @@ public class BezierCurveEditor : Editor
 
     void Reverse()
     {
-        Undo.RecordObject(curve, "Reverse Curve");
+        Undo.RegisterCompleteObjectUndo(curve, "Reverse Curve");
 
         curve.Reverse();
 

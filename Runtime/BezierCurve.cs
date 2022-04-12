@@ -32,7 +32,7 @@ public class BezierCurve : MonoBehaviour
     ///     - the number of interpolated points will be approximately "length of curve * resolution"
     ///     - used for calculating the "length" variable
     /// </summary>
-    public float resolution = 5;
+    public float resolution = 0.2f;
 
     [NonSerialized] public bool dirty = true;
 

@@ -55,6 +55,7 @@ public static class BezierCurveUpgrade
                     cp.handle2 = bp.handle2;
                 }
 
+#if UNITY_EDITOR
                 if (UnityEditor.PrefabUtility.GetPrefabInstanceStatus(curve) == UnityEditor.PrefabInstanceStatus.NotAPrefab)
                 {
                     for (int i = curve.legacyPoints.Length - 1; i >= 0; i--)
@@ -64,6 +65,7 @@ public static class BezierCurveUpgrade
                 }
                 else
                     Debug.LogWarning($"Curve \"{curve.name}\" is part of a prefab. You need to manually destroy its children BezierPoint GameObjects, which are no longer used, and reapply the prefab.", curve);
+#endif
 
                 int ct = curve.legacyPoints.Length;
                 curve.legacyPoints = null;
