@@ -432,7 +432,26 @@ public class BezierCurveEditor : Editor
 
         blockSelection = toolMode != ToolMode.None;
 
+        if (Event.current.commandName == "FrameSelected")
+        {
+            Event.current.commandName = "";
 
+            if (curve.pointCount > 0)
+            {
+                Bounds b = new Bounds(curve[0].position, Vector3.zero);
+
+                for (int i = 0; i < curve.pointCount; i++)
+                {
+                    b.Encapsulate(curve[i].position);
+                }
+
+                float largestDim = Mathf.Max(b.extents.x, Mathf.Max(b.extents.y, b.extents.z));
+
+                SceneView.currentDrawingSceneView.LookAt(
+                    b.center, SceneView.currentDrawingSceneView.rotation, largestDim);
+            }
+
+        }
     }
 
     Rect toolWindowRect = new Rect(20, 40, 200, 0);
